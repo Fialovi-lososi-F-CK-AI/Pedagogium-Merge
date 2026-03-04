@@ -4,16 +4,16 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.2",
+        "php": "^8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "artprima/prometheus-metrics-bundle": "^1.21",
-        "doctrine/doctrine-bundle": "^3.2",
-        "doctrine/doctrine-migrations-bundle": "^4.0",
-        "doctrine/orm": "^3.6",
+        "doctrine/doctrine-bundle": "^2.18.2",
+        "doctrine/doctrine-migrations-bundle": "^3.7",
+        "doctrine/orm": "^3.6.2",
         "symfony/console": "7.4.*",
         "symfony/dotenv": "7.4.*",
-        "symfony/flex": "^2",
+        "symfony/flex": "^2.10",
         "symfony/framework-bundle": "7.4.*",
         "symfony/http-foundation": "7.4.*",
         "symfony/routing": "7.4.*",
@@ -27,7 +27,10 @@
             "symfony/runtime": true
         },
         "bump-after-update": true,
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "8.2.30"
+        }
     },
     "autoload": {
         "psr-4": {
@@ -71,11 +74,11 @@
         }
     },
     "require-dev": {
-        "phpstan/phpstan": "*",
-        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": ">=2.1.40",
+        "phpunit/phpunit": "^10.5.63",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
         "symfony/maker-bundle": "^1.66",
-        "symfony/phpunit-bridge": "^8.0"
+        "symfony/phpunit-bridge": "^8.0.3"
     }
 }
