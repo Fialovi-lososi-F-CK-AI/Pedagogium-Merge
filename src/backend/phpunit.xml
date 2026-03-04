@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="vendor/autoload.php">
+    <php>
+        <env name="APP_ENV" value="test"/>
+        <env name="DATABASE_URL" value="sqlite:///%kernel.project_dir%/var/test.db"/>
+        <env name="AES_KEY" value="12345678901234567890123456789012"/>
+        <env name="AES_IV" value="1234567890123456"/>
+    </php>
     <testsuites>
         <testsuite name="Smoke">
             <directory>tests</directory>
