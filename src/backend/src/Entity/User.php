@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\UserRepository;
@@ -20,6 +19,12 @@ class User
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $password;
+
+    public function __construct(string $username, string $password)
+    {
+        $this->username = $username;
+        $this->password = $password;
+    }
 
     public function getId(): ?int
     {

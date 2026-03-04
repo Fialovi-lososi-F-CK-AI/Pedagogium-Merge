@@ -14,67 +14,50 @@ class UtmVisit
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $utm_source = null;
+    private string $utmSource;
 
     #[ORM\Column(length: 255)]
-    private ?string $utm_medium = null;
+    private string $utmMedium;
 
     #[ORM\Column(length: 255)]
-    private ?string $utm_campaign = null;
+    private string $utmCampaign;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    private \DateTimeImmutable $createdAt;
+
+    public function __construct(
+        string $utmSource,
+        string $utmMedium,
+        string $utmCampaign
+    ) {
+        $this->utmSource = $utmSource;
+        $this->utmMedium = $utmMedium;
+        $this->utmCampaign = $utmCampaign;
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getUtmSource(): ?string
+    public function getUtmSource(): string
     {
-        return $this->utm_source;
+        return $this->utmSource;
     }
 
-    public function setUtmSource(string $utm_source): static
+    public function getUtmMedium(): string
     {
-        $this->utm_source = $utm_source;
-
-        return $this;
+        return $this->utmMedium;
     }
 
-    public function getUtmMedium(): ?string
+    public function getUtmCampaign(): string
     {
-        return $this->utm_medium;
+        return $this->utmCampaign;
     }
 
-    public function setUtmMedium(string $utm_medium): static
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        $this->utm_medium = $utm_medium;
-
-        return $this;
-    }
-
-    public function getUtmCampaign(): ?string
-    {
-        return $this->utm_campaign;
-    }
-
-    public function setUtmCampaign(string $utm_campaign): static
-    {
-        $this->utm_campaign = $utm_campaign;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->created_at;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
-    {
-        $this->created_at = $created_at;
-
-        return $this;
+        return $this->createdAt;
     }
 }

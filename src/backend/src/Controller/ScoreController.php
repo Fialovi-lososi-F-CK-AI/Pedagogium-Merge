@@ -9,25 +9,36 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ScoreController extends AbstractController
 {
-    private ScoreService $service;
-
-    public function __construct(ScoreService $service)
-    {
-        $this->service = $service;
-    }
+    public function __construct(
+        private ScoreService $service
+    ) {}
 
     #[Route('/score', name: 'score', methods: ['POST'])]
     public function save(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['username'],$data['score'])) return new JsonResponse(['error'=>'Missing data'],400);
 
-        return new JsonResponse($this->service->saveHighscore($data['username'],$data['score']));
+        if (!is_array($data)) {
+            return new JsonResponse(['error' => 'Invalid JSON'], 400);
+        }
+
+        $username = $data['username'] ?? null;
+        $score = $data['score'] ?? null;
+
+        if (!is_string($username) || !is_int($score)) {
+            return new JsonResponse(['error' => 'Invalid data types'], 400);
+        }
+
+        return new JsonResponse(
+            $this->service->saveHighscore($username, $score)
+        );
     }
 
     #[Route('/top5', name: 'top5', methods: ['GET'])]
     public function top5(): JsonResponse
     {
-        return new JsonResponse($this->service->getTop5());
+        return new JsonResponse(
+            $this->service->getTop5()
+        );
     }
 }

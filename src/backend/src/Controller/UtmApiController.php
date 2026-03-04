@@ -10,22 +10,28 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/utm')]
 class UtmApiController
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    public function __construct(
+        private EntityManagerInterface $em
+    ) {}
 
     #[Route('/track', name: 'utm', methods: ['POST'])]
     public function track(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['utm_source'], $data['utm_medium'], $data['utm_campaign'])) {
-            return new JsonResponse(['error' => 'Missing UTM parameters'], 400);
+        if (!is_array($data)) {
+            return new JsonResponse(['error' => 'Invalid JSON'], 400);
         }
 
-        $visit = new UtmVisit();
-        $visit->setUtmSource($data['utm_source']);
-        $visit->setUtmMedium($data['utm_medium']);
-        $visit->setUtmCampaign($data['utm_campaign']);
-        $visit->setCreatedAt(new \DateTimeImmutable());
+        $source = $data['utm_source'] ?? null;
+        $medium = $data['utm_medium'] ?? null;
+        $campaign = $data['utm_campaign'] ?? null;
+
+        if (!is_string($source) || !is_string($medium) || !is_string($campaign)) {
+            return new JsonResponse(['error' => 'Invalid UTM parameters'], 400);
+        }
+
+        $visit = new UtmVisit($source, $medium, $campaign);
 
         $this->em->persist($visit);
         $this->em->flush();

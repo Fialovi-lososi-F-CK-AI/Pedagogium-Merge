@@ -9,32 +9,49 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
-    private UserService $service;
-
-    public function __construct(UserService $service)
-    {
-        $this->service = $service;
-    }
+    public function __construct(
+        private UserService $service
+    ) {}
 
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['username'],$data['password'])) {
-            return new JsonResponse(['error'=>'Missing data'],400);
+
+        if (!is_array($data)) {
+            return new JsonResponse(['error' => 'Invalid JSON'], 400);
         }
-        return new JsonResponse($this->service->register($data['username'],$data['password']));
+
+        $username = $data['username'] ?? null;
+        $password = $data['password'] ?? null;
+
+        if (!is_string($username) || !is_string($password)) {
+            return new JsonResponse(['error' => 'Invalid data types'], 400);
+        }
+
+        return new JsonResponse(
+            $this->service->register($username, $password)
+        );
     }
 
     #[Route('/password', name: 'password', methods: ['GET'])]
     public function getPassword(Request $request): JsonResponse
     {
         $username = $request->query->get('username');
-        if (!$username) return new JsonResponse(['error'=>'Missing username'],400);
+
+        if (!is_string($username) || $username === '') {
+            return new JsonResponse(['error' => 'Missing username'], 400);
+        }
 
         $password = $this->service->getPassword($username);
-        if (!$password) return new JsonResponse(['error'=>'User not found'],404);
 
-        return new JsonResponse(['username'=>$username,'password'=>$password]);
+        if ($password === null) {
+            return new JsonResponse(['error' => 'User not found'], 404);
+        }
+
+        return new JsonResponse([
+            'username' => $username,
+            'password' => $password
+        ]);
     }
 }

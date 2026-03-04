@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\ScoreRepository;
@@ -20,6 +19,12 @@ class Score
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private User $user;
+
+    public function __construct(User $user, int $value)
+    {
+        $this->user = $user;
+        $this->value = $value;
+    }
 
     public function getId(): ?int
     {

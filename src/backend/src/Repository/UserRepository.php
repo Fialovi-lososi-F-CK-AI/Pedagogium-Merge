@@ -16,24 +16,29 @@ class UserRepository
     public function findByUsername(string $username): ?User
     {
         $stmt = $this->db->getPDO()->prepare("SELECT * FROM users WHERE username=:u");
-        $stmt->execute(['u'=>$username]);
+        $stmt->execute(['u' => $username]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if (!$row) return null;
 
         $user = new User($row['username'], $row['password']);
-        $user->id = $row['id'];
+        $userReflection = new \ReflectionProperty(User::class, 'id');
+        $userReflection->setAccessible(true);
+        $userReflection->setValue($user, (int)$row['id']);
+
         return $user;
     }
 
     public function save(User $user): bool
     {
-        if ($user->id) {
+        if ($user->getId()) {
             $stmt = $this->db->getPDO()->prepare("UPDATE users SET password=:p WHERE id=:id");
-            return $stmt->execute(['p'=>$user->password, 'id'=>$user->id]);
+            return $stmt->execute(['p' => $user->getPassword(), 'id' => $user->getId()]);
         } else {
             $stmt = $this->db->getPDO()->prepare("INSERT INTO users (username, password) VALUES (:u,:p)");
-            $result = $stmt->execute(['u'=>$user->username, 'p'=>$user->password]);
-            $user->id = (int)$this->db->getPDO()->lastInsertId();
+            $result = $stmt->execute(['u' => $user->getUsername(), 'p' => $user->getPassword()]);
+            $userReflection = new \ReflectionProperty(User::class, 'id');
+            $userReflection->setAccessible(true);
+            $userReflection->setValue($user, (int)$this->db->getPDO()->lastInsertId());
             return $result;
         }
     }
