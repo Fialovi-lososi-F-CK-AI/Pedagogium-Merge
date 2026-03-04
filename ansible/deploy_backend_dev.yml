@@ -63,22 +63,13 @@
         recreate: true
         restart_policy: unless-stopped
         published_ports:
-          - "{{ ports[inactive_slot] }}:9000"
+          - "{{ ports[inactive_slot] }}:80"
         env:
           APP_ENV: "prod"
           DATABASE_URL: "{{ symfony_database_url }}"
           API_KEY: "{{ api_key }}"
         networks:
           - name: monitoring
-
-    - name: Wait for backend healthcheck
-      uri:
-        url: "http://127.0.0.1:{{ ports[inactive_slot] }}/health"
-        status_code: 200
-      retries: 12
-      delay: 5
-      register: health
-      until: health.status == 200 and health.content is search("ok")
 
     - name: Update nginx upstream
       template:
