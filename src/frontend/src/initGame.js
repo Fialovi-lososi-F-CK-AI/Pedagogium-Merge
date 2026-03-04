@@ -39,7 +39,6 @@ export default function initGame() {
     ];
 
     const wallWidth = 20;
-
     const wallProps = (isStatic) => [
         k.area(),
         k.body({ isStatic: isStatic, friction: 0.5, restitution: 0.1 }),
@@ -50,11 +49,11 @@ export default function initGame() {
     k.add([k.rect(wallWidth, k.height()), k.pos(k.width() - wallWidth, 0), ...wallProps(true), "border"]);
 
     let aimX = k.width() / 2;
-
     const clampX = (x) => k.clamp(x, wallWidth + 30, k.width() - wallWidth - 30);
 
     function spawnFruitAt(x, y, level, isDropped = false) {
         const data = FRUITS[level];
+
         const fruit = k.add([
             k.pos(x, y),
             k.area({ shape: new k.Circle(k.vec2(0), data.radius) }),
@@ -71,12 +70,9 @@ export default function initGame() {
         if (data.sprite) {
             fruit.use(k.sprite(data.sprite));
 
-            fruit.opacity = 0;
-
             const checkSize = fruit.onUpdate(() => {
                 if (fruit.width > 0) {
                     fruit.scale = k.vec2((data.radius * 2) / fruit.width);
-                    fruit.opacity = 1;
                     checkSize.cancel();
                 }
             });
