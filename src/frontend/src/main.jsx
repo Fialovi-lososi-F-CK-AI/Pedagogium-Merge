@@ -1,12 +1,15 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import ReactUI from './ReactUI.jsx'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import ReactUI from "./ReactUI.jsx";
+import "./index.css";
 
-createRoot(document.getElementById('ui')).render(
-  <StrictMode>
+const container = document.getElementById("root");
+if (!container) throw new Error("Root element #root not found in index.html");
+
+ReactDOM.createRoot(container).render(
+  <React.StrictMode>
     <ReactUI />
-  </StrictMode>,
-)
+  </React.StrictMode>
+);
 
 //initGame();
