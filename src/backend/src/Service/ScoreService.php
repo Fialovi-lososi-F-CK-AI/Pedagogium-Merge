@@ -1,22 +1,19 @@
 <?php
 namespace App\Service;
 
-use App\Entity\Score;
 use App\Repository\ScoreRepository;
 use App\Repository\UserRepository;
+use App\Entity\Score;
+use App\Entity\User;
 
 class ScoreService
 {
-    private ScoreRepository $scoreRepo;
-    private UserRepository $userRepo;
+    public function __construct(
+        private ScoreRepository $scoreRepo,
+        private UserRepository $userRepo
+    ) {}
 
-    public function __construct(ScoreRepository $scoreRepo, UserRepository $userRepo)
-    {
-        $this->scoreRepo = $scoreRepo;
-        $this->userRepo = $userRepo;
-    }
-
-    /** @return array<string,string> */
+    /** @return array{status: string}|array{error: string} */
     public function saveHighscore(string $username, int $score): array
     {
         $user = $this->userRepo->findOneBy(['username' => $username]);
@@ -26,12 +23,12 @@ class ScoreService
         if ($existingScore) {
             if ($score > $existingScore->getValue()) {
                 $existingScore->setValue($score);
-                $this->scoreRepo->getEntityManager()->flush();
+                $this->scoreRepo->_em->flush();
             }
         } else {
             $newScore = new Score($user, $score);
-            $this->scoreRepo->getEntityManager()->persist($newScore);
-            $this->scoreRepo->getEntityManager()->flush();
+            $this->scoreRepo->_em->persist($newScore);
+            $this->scoreRepo->_em->flush();
         }
 
         return ['status' => 'saved'];
@@ -40,6 +37,11 @@ class ScoreService
     /** @return Score[] */
     public function getTop5(): array
     {
-        return $this->scoreRepo->findBy([], ['value' => 'DESC'], 5);
+        return $this->scoreRepo->createQueryBuilder('s')
+            ->join('s.user', 'u')
+            ->orderBy('s.value', 'DESC')
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -5,6 +5,9 @@ use App\Entity\UtmVisit;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<UtmVisit>
+ */
 class UtmVisitRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)

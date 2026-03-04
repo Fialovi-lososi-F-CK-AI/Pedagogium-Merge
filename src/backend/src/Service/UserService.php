@@ -1,21 +1,17 @@
 <?php
 namespace App\Service;
 
-use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Entity\User;
 
 class UserService
 {
-    private UserRepository $repo;
-    private PasswordService $passwordService;
+    public function __construct(
+        private UserRepository $repo,
+        private PasswordService $passwordService
+    ) {}
 
-    public function __construct(UserRepository $repo, PasswordService $passwordService)
-    {
-        $this->repo = $repo;
-        $this->passwordService = $passwordService;
-    }
-
-    /** @return array<string,string> */
+    /** @return array{status:string}|array{error:string} */
     public function register(string $username, string $password): array
     {
         if ($this->repo->findOneBy(['username' => $username])) {
@@ -24,8 +20,8 @@ class UserService
 
         $encrypted = $this->passwordService->encrypt($password);
         $user = new User($username, $encrypted);
-        $this->repo->getEntityManager()->persist($user);
-        $this->repo->getEntityManager()->flush();
+        $this->repo->_em->persist($user);
+        $this->repo->_em->flush();
 
         return ['status' => 'ok'];
     }

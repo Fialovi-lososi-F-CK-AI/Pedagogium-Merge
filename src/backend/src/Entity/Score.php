@@ -1,8 +1,8 @@
 <?php
 namespace App\Entity;
 
-use App\Repository\ScoreRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ScoreRepository;
 
 #[ORM\Entity(repositoryClass: ScoreRepository::class)]
 #[ORM\Table(name: 'scores')]

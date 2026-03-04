@@ -1,35 +1,35 @@
 <?php
 namespace App\Entity;
 
-use App\Repository\UtmVisitRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\UtmVisitRepository;
 
 #[ORM\Entity(repositoryClass: UtmVisitRepository::class)]
 class UtmVisit
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private string $utm_source;
+    private string $utmSource;
 
     #[ORM\Column(length: 255)]
-    private string $utm_medium;
+    private string $utmMedium;
 
     #[ORM\Column(length: 255)]
-    private string $utm_campaign;
+    private string $utmCampaign;
 
-    #[ORM\Column]
-    private \DateTimeImmutable $created_at;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $createdAt;
 
-    public function __construct(string $source, string $medium, string $campaign)
+    public function __construct(string $utmSource, string $utmMedium, string $utmCampaign)
     {
-        $this->utm_source = $source;
-        $this->utm_medium = $medium;
-        $this->utm_campaign = $campaign;
-        $this->created_at = new \DateTimeImmutable();
+        $this->utmSource = $utmSource;
+        $this->utmMedium = $utmMedium;
+        $this->utmCampaign = $utmCampaign;
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -39,21 +39,21 @@ class UtmVisit
 
     public function getUtmSource(): string
     {
-        return $this->utm_source;
+        return $this->utmSource;
     }
 
     public function getUtmMedium(): string
     {
-        return $this->utm_medium;
+        return $this->utmMedium;
     }
 
     public function getUtmCampaign(): string
     {
-        return $this->utm_campaign;
+        return $this->utmCampaign;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 }
