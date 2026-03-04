@@ -1,3 +1,5 @@
+# Hardens SSH: disables root login and password auth (key-only).
+
 - name: Disable root login
   lineinfile:
     path: /etc/ssh/sshd_config

@@ -1,3 +1,5 @@
+# Disabled in site.yml — use deploy_backend_dev.yml (blue/green) for deployments instead.
+
 - name: Build backend image
   docker_image:
     path: /opt/app/backend

@@ -1,12 +1,16 @@
+# Symlink-based release deploy with rollback support (keeps last 5 releases).
+# Normal:   -e "org=X repo=Y release_tag=v1.0.0 release_name=$(date +%s)"
+# Rollback: -e "rollback_release=<dir-name>" --tags rollback
+
 - name: Atomic deploy frontend (React static)
   hosts: dev-node
   become: true
-  strategy: linear
+  strategy: linear  # Sequential — symlink swap must be ordered
 
   vars:
     frontend_root: /opt/app/frontend
     releases_dir: "{{ frontend_root }}/releases"
-    current_link: "{{ frontend_root }}/current"
+    current_link: "{{ frontend_root }}/current"  # Nginx reads from this symlink
     release_dir: "{{ releases_dir }}/{{ release_name }}"
     keep_releases: 5
 
@@ -41,7 +45,7 @@
         mode: "0755"
       when: rollback_release is not defined
 
-    - name: Download frontend release
+    - name: Download frontend release  # CI must publish dist.tar.gz as a GitHub Release asset
       get_url:
         url: https://github.com/{{ org }}/{{ repo }}/releases/download/{{ release_tag }}/dist.tar.gz
         dest: /tmp/frontend.tar.gz
@@ -54,7 +58,7 @@
         dest: "{{ release_dir }}"
         remote_src: true
         extra_opts:
-          - --strip-components=1
+          - --strip-components=1  # Strip top-level dist/ folder
 
     - name: Verify index.html exists
       stat:
@@ -69,7 +73,7 @@
         - rollback_release is not defined
         - not index_file.stat.exists
 
-    - name: Switch current symlink atomically
+    - name: Switch current symlink atomically  # Nginx sees no gap — symlink swap is atomic
       file:
         src: "{{ release_dir }}"
         dest: "{{ current_link }}"
@@ -98,7 +102,7 @@
       uri:
         url: https://localhost/
         status_code: 200
-        validate_certs: no
+        validate_certs: no  # Self-signed cert in dev
         headers:
           Host: local.dev
       when: rollback_release is not defined

@@ -1,3 +1,8 @@
+# Blue/green zero-downtime deploy: starts new container in inactive slot,
+# switches Nginx upstream, then stops the old container.
+# Usage: ansible-playbook deploy_backend_dev.yml -i inventories/dev
+#        -e "backend_image=ghcr.io/org/repo/backend:sha" --ask-vault-pass
+
 - name: Atomic backend deploy (Symfony Docker, zero downtime)
   hosts: dev-node
   become: true
@@ -24,11 +29,11 @@
     - name: Persist active slot
       copy:
         content: "{{ inactive_slot }}"
-        dest: "{{ active_slot_file }}" 
+        dest: "{{ active_slot_file }}"
         owner: root
         group: root
         mode: "0644"
-        
+
     - name: Login to GHCR
       docker_login:
         registry_url: ghcr.io
@@ -39,7 +44,7 @@
       slurp:
         src: "{{ active_slot_file }}"
       register: slot_file
-      ignore_errors: true
+      ignore_errors: true  # May not exist on first deploy
 
     - name: Set active slot
       set_fact:
@@ -78,7 +83,7 @@
       vars:
         backend_port: "{{ ports[inactive_slot] }}"
 
-    - name: Reload nginx
+    - name: Reload nginx  # Zero-downtime switch to new container
       service:
         name: nginx
         state: reloaded

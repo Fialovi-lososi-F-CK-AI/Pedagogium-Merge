@@ -1,3 +1,5 @@
+# Creates a deploy user with passwordless sudo and SSH key access.
+
 - name: Create deploy user
   user:
     name: "{{ deploy_user }}"
@@ -12,7 +14,7 @@
     content: "{{ deploy_user }} ALL=(ALL) NOPASSWD:ALL"
     owner: root
     group: root
-    mode: 0440
+    mode: 0440  # sudoers files must not be world-readable
 
 - name: Add SSH key for deploy user
   authorized_key:
