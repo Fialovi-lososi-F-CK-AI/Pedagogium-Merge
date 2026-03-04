@@ -22,7 +22,7 @@ export default function ReactUI() {
   };
 
   // auth
-  const [mode, setMode] = useState("login"); 
+  const [mode, setMode] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [authUser, setAuthUser] = useState(() => localStorage.getItem("authUser") || "");
@@ -45,39 +45,26 @@ export default function ReactUI() {
     setAuthMsg("");
 
     const u = username.trim();
-
-    if (!u) {
-      setAuthMsg("Please enter a username.");
-      return;
-    }
-    if (password.length < 5) {
-      setAuthMsg("Password must be at least 5 characters long.");
-      return;
-    }
+    if (!u) return setAuthMsg("Enter username.");
+    if (password.length < 5) return setAuthMsg("Password must have at least 5 characters.");
 
     try {
       if (mode === "signup") {
         await registerUser(u, password);
         localStorage.setItem("authUser", u);
         setAuthUser(u);
-        setAuthMsg("Registration successful, logged in.");
+        setAuthMsg("Registration successful. Logged in.");
       } else {
         const data = await getPasswordForUser(u);
-        if (!data || typeof data.password !== "string") {
-          setAuthMsg("Incorrect username or password.");
-          return;
-        }
-        if (data.password !== password) {
-          setAuthMsg("Incorrect password.");
-          return;
-        }
+        if (!data || typeof data.password !== "string") return setAuthMsg("Incorrect server response.");
+        if (data.password !== password) return setAuthMsg("Incorrect password.");
 
         localStorage.setItem("authUser", u);
         setAuthUser(u);
         setAuthMsg("Logged in.");
       }
     } catch (err) {
-      setAuthMsg(err?.message || "Error.");
+      setAuthMsg(err?.message || "Chyba.");
     }
   };
 
@@ -93,13 +80,14 @@ export default function ReactUI() {
 
   return (
     <div className="ui-container">
-      {/* Top bar */}
+      {/* TOPBAR: 3 sloupce (vlevo placeholder, uprostřed score, vpravo auth) */}
       <div className="topbar">
+        <div className="topbar-left" />
+
         <div className="score-board">
           <h1>Skóre: {score}</h1>
         </div>
 
-        {/* Auth box vpravo nahoře */}
         <div className="auth-box">
           {authUser ? (
             <div className="auth-logged">
@@ -145,7 +133,7 @@ export default function ReactUI() {
               />
 
               <button className="btn primary" type="submit" disabled={!canSubmit}>
-                {mode === "signup" ? "Create Account" : "Log in"}
+                {mode === "signup" ? "Create Account" : "Log In"}
               </button>
 
               {authMsg && <div className="auth-msg">{authMsg}</div>}
@@ -154,8 +142,8 @@ export default function ReactUI() {
         </div>
       </div>
 
-      {/* Main row: leaderboard vlevo, hra vpravo */}
-      <div className="main-row">
+      {/* MAIN: leaderboard vlevo, hra uprostřed, vpravo placeholder */}
+      <div className="main">
         <div className="leaderboard">
           <div className="leaderboard-header">
             <h2>Top 5</h2>
@@ -176,7 +164,11 @@ export default function ReactUI() {
           )}
         </div>
 
-        <canvas id="game-canvas" width="400" height="600"></canvas>
+        <div className="game-wrap">
+          <canvas id="game-canvas" width="400" height="600"></canvas>
+        </div>
+
+        <div className="main-right" />
       </div>
 
       <style>{`
@@ -193,10 +185,10 @@ export default function ReactUI() {
         }
 
         .topbar {
-          width: min(900px, 96vw);
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
+          width: min(1100px, 96vw);
+          display: grid;
+          grid-template-columns: 260px 1fr 320px;
+          align-items: start;
           gap: 12px;
           margin-bottom: 14px;
         }
@@ -205,12 +197,10 @@ export default function ReactUI() {
           padding: 16px 20px; 
           background: rgba(0,0,0,0.5); 
           border-radius: 12px;
-          min-width: 220px;
           text-align: center; 
         }
 
         .auth-box {
-          width: 280px;
           background: rgba(0,0,0,0.35);
           border: 1px solid rgba(255,255,255,0.08);
           border-radius: 12px;
@@ -263,16 +253,20 @@ export default function ReactUI() {
         .auth-line { opacity: 0.95; }
         .auth-msg { margin-top: 6px; font-size: 13px; opacity: 0.9; }
 
-        .main-row {
-          width: min(900px, 96vw);
+        .main {
+          width: min(1100px, 96vw);
+          display: grid;
+          grid-template-columns: 260px 1fr 320px;
+          align-items: start;
+          gap: 12px;
+        }
+
+        .game-wrap {
           display: flex;
-          align-items: flex-start;
           justify-content: center;
-          gap: 16px;
         }
 
         .leaderboard {
-          width: 260px;
           background: rgba(0,0,0,0.35);
           border: 1px solid rgba(255,255,255,0.08);
           border-radius: 12px;
@@ -288,7 +282,6 @@ export default function ReactUI() {
         .leaderboard h2 { margin: 0; font-size: 18px; }
 
         .lb-error { color: #ffb3b3; }
-
         .lb-list { margin: 0; padding-left: 20px; }
         .lb-item {
           display: flex;
@@ -308,11 +301,10 @@ export default function ReactUI() {
           box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* mobil */
-        @media (max-width: 820px) {
-          .topbar { flex-direction: column; align-items: stretch; }
-          .auth-box { width: auto; }
-          .main-row { flex-direction: column; align-items: center; }
+        @media (max-width: 900px) {
+          .topbar { grid-template-columns: 1fr; }
+          .main { grid-template-columns: 1fr; }
+          .game-wrap { justify-content: center; }
           .leaderboard { width: min(420px, 92vw); }
         }
       `}</style>
