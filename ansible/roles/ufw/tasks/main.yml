@@ -1,3 +1,6 @@
+# Configures UFW with default-deny policy. Opens only required ports.
+# Must run after all services are up — enabling UFW with SSH closed would drop the connection.
+
 - name: Allow HTTP
   ufw:
     rule: allow
@@ -34,4 +37,4 @@
 - name: Enable UFW
   ufw:
     state: enabled
-    policy: deny
+    policy: deny  # Default deny all incoming

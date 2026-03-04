@@ -1,3 +1,6 @@
+# Disabled in site.yml — TLS certs are provisioned manually for dev.
+# Intended for production Let's Encrypt certificate issuance.
+
 - name: Install Certbot with Nginx plugin
   apt:
     name:
@@ -14,4 +17,4 @@
     --email {{ cert_email }}
     -d {{ domain_name }}
   args:
-    creates: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
+    creates: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem  # Idempotent — skips if cert exists

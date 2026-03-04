@@ -1,7 +1,9 @@
+# Runs PostgreSQL 15 in Docker, provisions the app database and user, and starts postgres_exporter.
+
 - name: Install system psycopg2
   apt:
     name:
-      - python3-psycopg2
+      - python3-psycopg2  # Required by Ansible community.postgresql.* modules
       - libpq-dev
     state: present
     update_cache: yes
@@ -16,7 +18,7 @@
       POSTGRES_USER: "{{ postgres_superuser }}"
       POSTGRES_PASSWORD: "{{ postgres_superpassword }}"
       POSTGRES_DB: "{{ postgres_superdb }}"
-    command: postgres -c listen_addresses='*'
+    command: postgres -c listen_addresses='*'  # Accept connections from other containers
     ports:
       - "{{ postgres_port }}:5432"
     volumes:
@@ -35,23 +37,23 @@
   community.postgresql.postgresql_user:
     name: "{{ postgres_php_user }}"
     password: "{{ postgres_php_user_password }}"
-    login_user: "{{ postgres_superuser }}" 
+    login_user: "{{ postgres_superuser }}"
     login_password: "{{ postgres_superpassword }}"
     login_host: "127.0.0.1"
     login_port: "{{ postgres_port }}"
-    login_db: "{{ postgres_superdb }}"       
-    role_attr_flags: "LOGIN"   
+    login_db: "{{ postgres_superdb }}"
+    role_attr_flags: "LOGIN"
     state: present
 
 - name: Ensure PHP backend DB exists
   community.postgresql.postgresql_db:
     name: "{{ postgres_db }}"
-    owner: "{{ postgres_php_user }}"   
-    login_user: "{{ postgres_superuser }}"         
+    owner: "{{ postgres_php_user }}"
+    login_user: "{{ postgres_superuser }}"
     login_password: "{{ postgres_superpassword }}"
     login_host: "127.0.0.1"
     login_port: "{{ postgres_port }}"
-    maintenance_db: "{{ postgres_superdb }}"        
+    maintenance_db: "{{ postgres_superdb }}"
     state: present
 
 - name: Grant all privileges on DB to PHP user
@@ -66,8 +68,7 @@
     login_port: "{{ postgres_port }}"
     login_db: "{{ postgres_superdb }}"
 
-
-- name: Run Postgres exporter container
+- name: Run Postgres exporter container  # Exposes DB metrics for Prometheus on port 9187
   docker_container:
     name: postgres_exporter
     image: prometheuscommunity/postgres-exporter:latest
