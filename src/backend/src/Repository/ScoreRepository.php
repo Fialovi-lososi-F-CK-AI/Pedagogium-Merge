@@ -2,8 +2,6 @@
 namespace App\Repository;
 
 use App\Entity\Score;
-use App\Entity\User;
-use App\Utils\TypeCast;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -17,11 +15,10 @@ class ScoreRepository extends ServiceEntityRepository
         parent::__construct($registry, Score::class);
     }
 
-    /**
-     * @return Score[]
-     */
+    /** @return Score[] */
     public function getTop5(): array
     {
+        /** @var Score[] $results */
         $results = $this->createQueryBuilder('s')
             ->join('s.user', 'u')
             ->addSelect('u')
@@ -30,29 +27,19 @@ class ScoreRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return TypeCast::toArray($results); // PHPStan nyní ví, že je to array
+        return $results;
     }
 
-    /**
-     * @param User $user
-     * @return Score|null
-     */
-    public function findByUser(User $user): ?Score
-    {
-        return $this->findOneBy(['user' => $user]);
-    }
-
-    /**
-     * @param int $userId
-     * @return Score|null
-     */
     public function findByUserId(int $userId): ?Score
     {
-        return $this->createQueryBuilder('s')
+        /** @var Score|null $score */
+        $score = $this->createQueryBuilder('s')
             ->join('s.user', 'u')
             ->where('u.id = :uid')
             ->setParameter('uid', $userId)
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $score;
     }
 }

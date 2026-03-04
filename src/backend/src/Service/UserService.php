@@ -1,14 +1,16 @@
 <?php
 namespace App\Service;
 
-use App\Repository\UserRepository;
 use App\Entity\User;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class UserService
 {
     public function __construct(
         private UserRepository $repo,
-        private PasswordService $passwordService
+        private PasswordService $passwordService,
+        private EntityManagerInterface $em,
     ) {}
 
     /** @return array{status:string}|array{error:string} */
@@ -20,8 +22,9 @@ class UserService
 
         $encrypted = $this->passwordService->encrypt($password);
         $user = new User($username, $encrypted);
-        $this->repo->_em->persist($user);
-        $this->repo->_em->flush();
+
+        $this->em->persist($user);
+        $this->em->flush();
 
         return ['status' => 'ok'];
     }
@@ -30,6 +33,7 @@ class UserService
     {
         $user = $this->repo->findOneBy(['username' => $username]);
         if (!$user) return null;
+
         return $this->passwordService->decrypt($user->getPassword());
     }
 }

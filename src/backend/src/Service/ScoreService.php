@@ -1,34 +1,38 @@
 <?php
 namespace App\Service;
 
+use App\Entity\Score;
 use App\Repository\ScoreRepository;
 use App\Repository\UserRepository;
-use App\Entity\Score;
-use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ScoreService
 {
     public function __construct(
         private ScoreRepository $scoreRepo,
-        private UserRepository $userRepo
+        private UserRepository $userRepo,
+        private EntityManagerInterface $em,
     ) {}
 
     /** @return array{status: string}|array{error: string} */
     public function saveHighscore(string $username, int $score): array
     {
         $user = $this->userRepo->findOneBy(['username' => $username]);
-        if (!$user) return ['error' => 'User not found'];
+        if (!$user) {
+            return ['error' => 'User not found'];
+        }
 
         $existingScore = $this->scoreRepo->findOneBy(['user' => $user]);
+
         if ($existingScore) {
             if ($score > $existingScore->getValue()) {
                 $existingScore->setValue($score);
-                $this->scoreRepo->_em->flush();
+                $this->em->flush();
             }
         } else {
             $newScore = new Score($user, $score);
-            $this->scoreRepo->_em->persist($newScore);
-            $this->scoreRepo->_em->flush();
+            $this->em->persist($newScore);
+            $this->em->flush();
         }
 
         return ['status' => 'saved'];
@@ -37,11 +41,6 @@ class ScoreService
     /** @return Score[] */
     public function getTop5(): array
     {
-        return $this->scoreRepo->createQueryBuilder('s')
-            ->join('s.user', 'u')
-            ->orderBy('s.value', 'DESC')
-            ->setMaxResults(5)
-            ->getQuery()
-            ->getResult();
+        return $this->scoreRepo->getTop5();
     }
 }
