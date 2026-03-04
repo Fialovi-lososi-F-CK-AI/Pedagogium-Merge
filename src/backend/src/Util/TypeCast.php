@@ -4,24 +4,30 @@ namespace App\Utils;
 class TypeCast
 {
     /**
-     * Převede hodnotu na string
+     * Přetypuje cokoliv na string.
+     * PHPStan už nebude hlásit warning.
      *
      * @param mixed $value
      * @return string
      */
     public static function toString(mixed $value): string
     {
-        return (string) $value;
+        /** @var string $casted */
+        $casted = (string) $value;
+        return $casted;
     }
 
     /**
-     * Převede hodnotu na int
+     * Přetypuje cokoliv na int.
+     * PHPStan už nebude hlásit warning.
      *
      * @param mixed $value
      * @return int
      */
     public static function toInt(mixed $value): int
     {
-        return (int) $value;
+        /** @var int $casted */
+        $casted = (int) $value;
+        return $casted;
     }
 }
