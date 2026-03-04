@@ -65,28 +65,33 @@ export default function initGame() {
 
         if (data.sprite) {
             fruit.use(k.sprite(data.sprite));
+
+            fruit.opacity = 0;
+
             const checkSize = fruit.onUpdate(() => {
                 if (fruit.width > 0) {
                     fruit.scale = k.vec2((data.radius * 2) / fruit.width);
-                    fruit.unuse("area");
-                    fruit.use(k.area({ 
-                        shape: new k.Circle(k.vec2(0), (fruit.width / 2) * 0.98) 
-                    }));
+                    fruit.opacity = 1;
                     checkSize.cancel();
                 }
             });
         } else {
             fruit.use(k.circle(data.radius));
             fruit.use(k.color(data.color));
-            fruit.use(k.outline(2, [0, 0, 0])); 
+            fruit.use(k.outline(2, [0, 0, 0]));
         }
 
         return fruit;
     }
 
+    const getSpawnX = () => {
+        const mx = k.mousePos ? k.mousePos().x : k.width() / 2;
+        return k.clamp(mx, wallWidth + 30, k.width() - wallWidth - 30);
+    };
+
     let currentFruit = null;
     const prepareNext = () => {
-        currentFruit = spawnFruitAt(k.width() / 2, 70, 0, false);
+        currentFruit = spawnFruitAt(getSpawnX(), 70, 0, false);
     };
 
     k.wait(0.2, prepareNext);
