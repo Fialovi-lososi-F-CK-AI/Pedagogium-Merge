@@ -1,3 +1,5 @@
+# Creates base directories required by other roles.
+
 - name: Ensure required directories exist
   file:
     path: "{{ item }}"

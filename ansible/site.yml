@@ -2,16 +2,16 @@
   hosts: all
   become: true
   vars_files:
-    - secrets.yml
+    - secrets.yml  # Vault-encrypted secrets (passwords, tokens, keys)
   roles:
-    - common
-    - users
-    - ssh_hardening
-    - docker
-    - postgres
-    #- backend
-    - nginx
-    #- certbot
-    - monitoring
-    - ufw
-    - app
+    - common        # Base directories
+    - users         # Deploy user + SSH key
+    - ssh_hardening # Key-only SSH, no root login
+    - docker        # Docker Engine + monitoring network
+    - postgres      # PostgreSQL 15 container + app DB
+    #- backend      # Handled by deploy_backend_dev.yml
+    - nginx         # Nginx reverse proxy + TLS
+    #- certbot      # Disabled — certs provisioned manually
+    - monitoring    # Prometheus + Grafana
+    - ufw           # Firewall: default deny
+    - app           # Ensure /opt/app exists

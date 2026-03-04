@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from "react";
-import initGame from "./initGame.js"; 
+import initGame from "./initGame.js";
+import { trackUTM } from "./utmTracker";
 
 export default function ReactUI() {
   const [score, setScore] = useState(0);
 
   useEffect(() => {
-    initGame();
+  initGame();
 
-    const handleScore = (e) => setScore((prev) => prev + e.detail);
-    window.addEventListener("addScore", handleScore);
-    
-    return () => window.removeEventListener("addScore", handleScore);
-  }, []); 
+  trackUTM();
+
+  const handleScore = (e) => setScore((prev) => prev + e.detail);
+  window.addEventListener("addScore", handleScore);
+
+  return () => window.removeEventListener("addScore", handleScore);
+}, []);
 
   return (
     <div className="ui-container">
       <div className="score-board">
         <h1>Skóre: {score}</h1>
       </div>
-      
+
       <canvas id="game-canvas" width="400" height="600"></canvas>
 
       <style>{`
