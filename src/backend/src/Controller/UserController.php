@@ -9,49 +9,33 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
-    public function __construct(
-        private UserService $service
-    ) {}
+    private UserService $service;
+
+    public function __construct(UserService $service)
+    {
+        $this->service = $service;
+    }
 
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-
-        if (!is_array($data)) {
-            return new JsonResponse(['error' => 'Invalid JSON'], 400);
+        if (!is_array($data) || !isset($data['username'],$data['password'])) {
+            return new JsonResponse(['error'=>'Missing data'],400);
         }
 
-        $username = $data['username'] ?? null;
-        $password = $data['password'] ?? null;
-
-        if (!is_string($username) || !is_string($password)) {
-            return new JsonResponse(['error' => 'Invalid data types'], 400);
-        }
-
-        return new JsonResponse(
-            $this->service->register($username, $password)
-        );
+        return new JsonResponse($this->service->register($data['username'],$data['password']));
     }
 
     #[Route('/password', name: 'password', methods: ['GET'])]
     public function getPassword(Request $request): JsonResponse
     {
         $username = $request->query->get('username');
-
-        if (!is_string($username) || $username === '') {
-            return new JsonResponse(['error' => 'Missing username'], 400);
-        }
+        if (!$username) return new JsonResponse(['error'=>'Missing username'],400);
 
         $password = $this->service->getPassword($username);
+        if (!$password) return new JsonResponse(['error'=>'User not found'],404);
 
-        if ($password === null) {
-            return new JsonResponse(['error' => 'User not found'], 404);
-        }
-
-        return new JsonResponse([
-            'username' => $username,
-            'password' => $password
-        ]);
+        return new JsonResponse(['username'=>$username,'password'=>$password]);
     }
 }

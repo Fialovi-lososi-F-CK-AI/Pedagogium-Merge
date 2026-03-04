@@ -14,6 +14,27 @@ class ScoreRepository
         $this->db = $db;
     }
 
+    public function findByUserId(int $userId): ?Score
+    {
+        $stmt = $this->db->getPDO()->prepare("SELECT * FROM scores WHERE user_id=:u");
+        $stmt->execute(['u' => $userId]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$row) return null;
+
+        $user = new User('', '');
+        $refUser = new \ReflectionProperty(User::class, 'id');
+        $refUser->setAccessible(true);
+        $refUser->setValue($user, (int)$row['user_id']);
+
+        $score = new Score($user, (int)$row['score']);
+        $refScore = new \ReflectionProperty(Score::class, 'id');
+        $refScore->setAccessible(true);
+        $refScore->setValue($score, (int)$row['id']);
+
+        return $score;
+    }
+
     /** @return Score[] */
     public function getTop5(): array
     {
@@ -24,22 +45,19 @@ class ScoreRepository
             ORDER BY s.score DESC
             LIMIT 5
         ");
-
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-
         $scores = [];
+
         foreach ($rows as $row) {
             $user = new User($row['username'], $row['password']);
-            $userId = (int)$row['user_id'];
-            $userReflection = new \ReflectionProperty(User::class, 'id');
-            $userReflection->setAccessible(true);
-            $userReflection->setValue($user, $userId);
+            $refUser = new \ReflectionProperty(User::class, 'id');
+            $refUser->setAccessible(true);
+            $refUser->setValue($user, (int)$row['user_id']);
 
             $score = new Score($user, (int)$row['score']);
-            $scoreId = (int)$row['id'];
-            $scoreReflection = new \ReflectionProperty(Score::class, 'id');
-            $scoreReflection->setAccessible(true);
-            $scoreReflection->setValue($score, $scoreId);
+            $refScore = new \ReflectionProperty(Score::class, 'id');
+            $refScore->setAccessible(true);
+            $refScore->setValue($score, (int)$row['id']);
 
             $scores[] = $score;
         }
@@ -47,39 +65,23 @@ class ScoreRepository
         return $scores;
     }
 
-    public function findByUserId(int $userId): ?Score
-    {
-        $stmt = $this->db->getPDO()->prepare("SELECT * FROM scores WHERE user_id=:u");
-        $stmt->execute(['u' => $userId]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if (!$row) return null;
-
-        // musíme mít uživatele – tady prostě fake user kvůli entity
-        $user = new User('', '');
-        $userReflection = new \ReflectionProperty(User::class, 'id');
-        $userReflection->setAccessible(true);
-        $userReflection->setValue($user, (int)$row['user_id']);
-
-        $score = new Score($user, (int)$row['score']);
-        $scoreReflection = new \ReflectionProperty(Score::class, 'id');
-        $scoreReflection->setAccessible(true);
-        $scoreReflection->setValue($score, (int)$row['id']);
-
-        return $score;
-    }
-
     public function save(Score $score): bool
     {
         if ($score->getId()) {
             $stmt = $this->db->getPDO()->prepare("UPDATE scores SET score=:s WHERE id=:id");
             return $stmt->execute(['s' => $score->getValue(), 'id' => $score->getId()]);
-        } else {
-            $stmt = $this->db->getPDO()->prepare("INSERT INTO scores (user_id, score) VALUES (:u,:s)");
-            $result = $stmt->execute(['u' => $score->getUser()->getId(), 's' => $score->getValue()]);
-            $scoreReflection = new \ReflectionProperty(Score::class, 'id');
-            $scoreReflection->setAccessible(true);
-            $scoreReflection->setValue($score, (int)$this->db->getPDO()->lastInsertId());
-            return $result;
         }
+
+        $stmt = $this->db->getPDO()->prepare("INSERT INTO scores (user_id, score) VALUES (:u,:s)");
+        $result = $stmt->execute([
+            'u' => $score->getUser()->getId(),
+            's' => $score->getValue()
+        ]);
+
+        $refScore = new \ReflectionProperty(Score::class, 'id');
+        $refScore->setAccessible(true);
+        $refScore->setValue($score, (int)$this->db->getPDO()->lastInsertId());
+
+        return $result;
     }
 }

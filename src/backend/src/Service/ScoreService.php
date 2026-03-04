@@ -16,11 +16,6 @@ class ScoreService
         $this->userRepo = $userRepo;
     }
 
-    /**
-     * @param string $username
-     * @param int $score
-     * @return array<string,string>
-     */
     public function saveHighscore(string $username, int $score): array
     {
         $user = $this->userRepo->findByUsername($username);
@@ -33,16 +28,13 @@ class ScoreService
                 $this->scoreRepo->save($existingScore);
             }
         } else {
-            $newScore = new Score($user, $score);
-            $this->scoreRepo->save($newScore);
+            $this->scoreRepo->save(new Score($user, $score));
         }
 
         return ['status'=>'saved'];
     }
 
-    /**
-     * @return Score[]
-     */
+    /** @return Score[] */
     public function getTop5(): array
     {
         return $this->scoreRepo->getTop5();

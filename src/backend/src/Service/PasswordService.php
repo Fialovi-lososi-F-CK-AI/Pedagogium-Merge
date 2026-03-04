@@ -14,28 +14,21 @@ class PasswordService
 
     public function encrypt(string $text): string
     {
-        $encrypted = openssl_encrypt($text, 'AES-256-CBC', $this->key, OPENSSL_RAW_DATA, $this->iv);
-
-        if ($encrypted === false) {
-            throw new \RuntimeException('Encryption failed.');
-        }
-
-        return base64_encode($encrypted);
+        return base64_encode(
+            openssl_encrypt($text, 'AES-256-CBC', $this->key, OPENSSL_RAW_DATA, $this->iv)
+        );
     }
 
     public function decrypt(string $text): string
     {
-        $decoded = base64_decode($text, true);
-        if ($decoded === false) {
-            throw new \RuntimeException('Base64 decoding failed.');
-        }
+        $result = openssl_decrypt(
+            base64_decode($text),
+            'AES-256-CBC',
+            $this->key,
+            OPENSSL_RAW_DATA,
+            $this->iv
+        );
 
-        $decrypted = openssl_decrypt($decoded, 'AES-256-CBC', $this->key, OPENSSL_RAW_DATA, $this->iv);
-
-        if ($decrypted === false) {
-            throw new \RuntimeException('Decryption failed.');
-        }
-
-        return $decrypted;
+        return $result ?: '';
     }
 }

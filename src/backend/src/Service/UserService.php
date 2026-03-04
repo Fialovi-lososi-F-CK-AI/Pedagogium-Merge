@@ -15,11 +15,6 @@ class UserService
         $this->passwordService = $passwordService;
     }
 
-    /**
-     * @param string $username
-     * @param string $password
-     * @return array<string,string>
-     */
     public function register(string $username, string $password): array
     {
         if ($this->repo->findByUsername($username)) {
@@ -33,10 +28,6 @@ class UserService
         return ['status'=>'ok'];
     }
 
-    /**
-     * @param string $username
-     * @return string|null
-     */
     public function getPassword(string $username): ?string
     {
         $user = $this->repo->findByUsername($username);
