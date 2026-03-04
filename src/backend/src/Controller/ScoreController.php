@@ -5,7 +5,7 @@ use App\Service\ScoreService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Score;
+use function App\Utils\cast;
 
 #[Route('/score')]
 class ScoreController
@@ -18,8 +18,8 @@ class ScoreController
         /** @var array<string, mixed> $data */
         $data = json_decode($request->getContent(), true) ?? [];
 
-        $username = (string) ($data['username'] ?? '');
-        $score = (int) ($data['score'] ?? 0);
+        $username = cast($data['username'] ?? null, 'string', '');
+        $score = cast($data['score'] ?? null, 'int', 0);
 
         if ($username === '' || $score <= 0) {
             return new JsonResponse(['error' => 'Invalid input'], 400);
@@ -32,10 +32,9 @@ class ScoreController
     #[Route('/top5', name: 'score_top5', methods: ['GET'])]
     public function top5(): JsonResponse
     {
-        /** @var Score[] $scores */
         $scores = $this->scoreService->getTop5();
 
-        $output = array_map(fn(Score $s) => [
+        $output = array_map(fn($s) => [
             'username' => $s->getUser()->getUsername(),
             'score' => $s->getValue(),
         ], $scores);
