@@ -1,6 +1,9 @@
 import kaplay from "kaplay";
 
 export default function initGame() {
+    if (window.__kaplayInitialized) return;
+    window.__kaplayInitialized = true;
+    
     const canvas = document.getElementById("game-canvas");
     if (!canvas) return;
 
