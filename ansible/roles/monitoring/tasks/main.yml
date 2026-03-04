@@ -1,8 +1,10 @@
+# Runs Prometheus and Grafana in Docker for metrics collection and dashboards.
+
 - name: Ensure Prometheus config dir exists
   file:
     path: /opt/prometheus
     state: directory
-    owner: 65534
+    owner: 65534  # 'nobody' — matches the user inside the prom/prometheus image
     group: 65534
     mode: "0755"
 
@@ -22,7 +24,7 @@
     group: 65534
     mode: "0755"
 
-- name: Check prometheus.yml exists and is a file
+- name: Check prometheus.yml exists and is a file  # Prevents Docker silently mounting it as a dir
   stat:
     path: /opt/prometheus/prometheus.yml
   register: prometheus_config
@@ -46,7 +48,7 @@
     networks:
       - name: monitoring
 
-- name: Run Grafana container
+- name: Run Grafana container  # Served at /grafana sub-path via Nginx
   docker_container:
     name: grafana
     image: grafana/grafana:12.3-ubuntu

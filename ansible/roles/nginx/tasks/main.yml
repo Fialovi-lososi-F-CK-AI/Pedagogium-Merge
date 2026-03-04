@@ -1,10 +1,12 @@
+# Deploys Nginx (Alpine) in Docker as a reverse proxy with TLS. Also starts nginx_exporter.
+
 - name: Ensure certs dir exists
   file:
     path: /home/ansible/certs
     state: directory
     owner: ansible
     group: ansible
-    mode: "0700"
+    mode: "0700"  # Private key must not be world-readable
 
 - name: Copy TLS certificate
   copy:
@@ -30,7 +32,7 @@
     group: root
     mode: "0755"
 
-- name: Render nginx config
+- name: Render nginx config  # Also called during backend deploy to switch upstream port
   template:
     src: default.conf.j2
     dest: /opt/nginx/default.conf
@@ -55,7 +57,7 @@
     networks:
       - name: monitoring
 
-- name: Run Nginx Prometheus exporter container
+- name: Run Nginx Prometheus exporter container  # Exposes Nginx metrics on port 9113
   docker_container:
     name: nginx_exporter
     image: nginx/nginx-prometheus-exporter:edge

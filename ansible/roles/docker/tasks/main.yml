@@ -1,3 +1,5 @@
+# Installs Docker Engine from the official repo and creates the shared monitoring network.
+
 - name: Install required system packages
   apt:
     name:
@@ -36,7 +38,7 @@
       - containerd.io
       - docker-buildx-plugin
       - docker-compose-plugin
-      - python3-pip
+      - python3-pip  # Required by Ansible docker_* modules
     state: present
     update_cache: yes
 
@@ -52,7 +54,7 @@
     groups: docker
     append: true
 
-- name: Create monitoring Docker network
+- name: Create monitoring Docker network  # Shared by all containers for inter-container communication
   docker_network:
     name: monitoring
     driver: bridge
