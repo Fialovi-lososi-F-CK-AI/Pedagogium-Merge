@@ -17,8 +17,8 @@ class UserController
         /** @var array<string, mixed> $data */
         $data = json_decode($request->getContent(), true) ?? [];
 
-        $username = (string) ($data['username'] ?? '');
-        $password = (string) ($data['password'] ?? '');
+        $username (string) = (string) ($data['username'] ?? '');
+        $password (string) = (string) ($data['password'] ?? '');
 
         if ($username === '' || $password === '') {
             return new JsonResponse(['error' => 'Invalid input'], 400);
