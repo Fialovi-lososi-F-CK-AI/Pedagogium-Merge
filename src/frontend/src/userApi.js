@@ -3,7 +3,7 @@ const API_BASE = "/api";
 async function readJsonOrThrow(res) {
   const text = await res.text().catch(() => "");
   let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { /* ignore */ }
+  try { data = text ? JSON.parse(text) : null; } catch {}
 
   if (!res.ok) {
     const msg = (data && data.error) ? data.error : text || `HTTP ${res.status}`;
@@ -13,20 +13,11 @@ async function readJsonOrThrow(res) {
 }
 
 export async function registerUser(username, password) {
-  const res = await fetch(`/register`, {
+  const res = await fetch(`${API_BASE}/user/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
-  return readJsonOrThrow(res);
-}
 
-export async function getPasswordForUser(username) {
-  const url = new URL(`/password`, window.location.origin);
-  url.searchParams.set("username", username);
-
-  const res = await fetch(url.toString(), {
-    headers: { "Accept": "application/json" },
-  });
   return readJsonOrThrow(res);
 }
