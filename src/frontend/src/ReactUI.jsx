@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import initGame from "./initGame.js";
 import { trackUTM } from "./utmTracker";
 import { fetchTop5 } from "./leaderboardApi";
-import { registerUser, getPasswordForUser } from "./userApi";
+import { registerUser } from "./userApi";
 
 export default function ReactUI() {
   const [score, setScore] = useState(0);
@@ -55,16 +55,10 @@ export default function ReactUI() {
         setAuthUser(u);
         setAuthMsg("Registration successful. Logged in.");
       } else {
-        const data = await getPasswordForUser(u);
-        if (!data || typeof data.password !== "string") return setAuthMsg("Incorrect server response.");
-        if (data.password !== password) return setAuthMsg("Incorrect password.");
-
-        localStorage.setItem("authUser", u);
-        setAuthUser(u);
-        setAuthMsg("Logged in.");
+        setAuthMsg("Login is not implemented on backend yet.");
       }
     } catch (err) {
-      setAuthMsg(err?.message || "Chyba.");
+      setAuthMsg(err?.message || "Error.");
     }
   };
 
