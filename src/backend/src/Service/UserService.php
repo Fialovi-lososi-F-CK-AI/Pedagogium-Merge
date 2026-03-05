@@ -36,4 +36,15 @@ class UserService
 
         return $this->passwordService->decrypt($user->getPassword());
     }
+
+    public function checkUser(string $username, string $password): bool
+    {
+        $user = $this->userRepository->findOneBy(['username' => $username]);
+
+        if (!$user) {
+            return false;
+        }
+
+        return $user->getPassword() === $password;
+    }
 }
