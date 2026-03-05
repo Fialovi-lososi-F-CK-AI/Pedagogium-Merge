@@ -13,7 +13,7 @@ async function readJsonOrThrow(res) {
 }
 
 export async function registerUser(username, password) {
-  const res = await fetch(`${API_BASE}/register`, {
+  const res = await fetch(`/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
@@ -22,7 +22,7 @@ export async function registerUser(username, password) {
 }
 
 export async function getPasswordForUser(username) {
-  const url = new URL(`${API_BASE}/password`, window.location.origin);
+  const url = new URL(`/password`, window.location.origin);
   url.searchParams.set("username", username);
 
   const res = await fetch(url.toString(), {

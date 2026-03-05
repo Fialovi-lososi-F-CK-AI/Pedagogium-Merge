@@ -1,7 +1,7 @@
 const API_BASE = "/api";
 
 export async function fetchTop5() {
-  const res = await fetch(`${API_BASE}/top5`, {
+  const res = await fetch(`/top5`, {
     headers: { "Accept": "application/json" },
   });
   if (!res.ok) {

@@ -10,7 +10,7 @@ export function trackUTM() {
 
   if (localStorage.getItem("utmTracked")) return;
 
-  fetch("/api/utm/track", {
+  fetch("/utm/track", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
