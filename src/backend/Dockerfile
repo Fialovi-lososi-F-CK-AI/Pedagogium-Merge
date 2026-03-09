@@ -2,15 +2,20 @@ FROM php:8.2-alpine
 
 WORKDIR /app
 
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
+
 RUN apk add --no-cache bash icu-dev libzip-dev zlib-dev postgresql-dev git
 
 RUN docker-php-ext-install pdo pdo_pgsql intl zip opcache
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-COPY . .
+COPY composer.json composer.lock ./
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+COPY . .
 
 EXPOSE 80
 
