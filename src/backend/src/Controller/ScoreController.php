@@ -42,3 +42,4 @@ class ScoreController
         return new JsonResponse($output);
     }
 }
+// :D
