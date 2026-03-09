@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Service;
 
 use App\Entity\User;
@@ -13,15 +14,15 @@ class UserService
         private EntityManagerInterface $em,
     ) {}
 
-    /** @return array{status:string}|array{error:string} */
+    /** @return array{status: string}|array{error: string} */
     public function register(string $username, string $password): array
     {
         if ($this->repo->findOneBy(['username' => $username])) {
             return ['error' => 'User exists'];
         }
 
-        $encrypted = $this->passwordService->encrypt($password);
-        $user = new User($username, $encrypted);
+        $hashedPassword = $this->passwordService->hash($password);
+        $user = new User($username, $hashedPassword);
 
         $this->em->persist($user);
         $this->em->flush();
@@ -29,22 +30,14 @@ class UserService
         return ['status' => 'ok'];
     }
 
-    public function getPassword(string $username): ?string
-    {
-        $user = $this->repo->findOneBy(['username' => $username]);
-        if (!$user) return null;
-
-        return $this->passwordService->decrypt($user->getPassword());
-    }
-
     public function checkUser(string $username, string $password): bool
     {
         $user = $this->repo->findOneBy(['username' => $username]);
 
-        if (!$user) {
+        if (!$user instanceof User) {
             return false;
         }
 
-        return $user->getPassword() === $password;
+        return $this->passwordService->verify($password, $user->getPassword());
     }
 }

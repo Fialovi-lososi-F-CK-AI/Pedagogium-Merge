@@ -5,7 +5,7 @@ use App\Repository\UtmVisitRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/utm')]
+#[Route('/api/utm')]
 class UtmAdminController
 {
     #[Route('/stats', name: 'stats', methods: ['GET'])]

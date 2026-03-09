@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Utils\TypeCast;
 
-#[Route('/user')]
+#[Route('/api/user')]
 class UserController
 {
     public function __construct(private UserService $userService) {}
@@ -26,35 +26,40 @@ class UserController
         }
 
         $result = $this->userService->register($username, $password);
-        return new JsonResponse($result);
+
+        if (isset($result['error'])) {
+            return new JsonResponse($result, 400);
+        }
+
+        return new JsonResponse($result, 201);
     }
 
     #[Route('/login', name: 'user_login', methods: ['POST'])]
-        public function login(Request $request): JsonResponse
-        {
-            /** @var array<string, mixed> $data */
-            $data = json_decode($request->getContent(), true) ?? [];
+    public function login(Request $request): JsonResponse
+    {
+        /** @var array<string, mixed> $data */
+        $data = json_decode($request->getContent(), true) ?? [];
 
-            $username = TypeCast::toString($data['username'] ?? '');
-            $password = TypeCast::toString($data['password'] ?? '');
+        $username = TypeCast::toString($data['username'] ?? '');
+        $password = TypeCast::toString($data['password'] ?? '');
 
-            if ($username === '' || $password === '') {
-                return new JsonResponse(['error' => 'Invalid input'], 400);
-            }
-
-            $user = $this->userService->checkUser($username, $password);
-
-            if (!$user) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Invalid username or password'
-                ], 401);
-            }
-
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Login successful',
-                'username' => $username
-            ]);
+        if ($username === '' || $password === '') {
+            return new JsonResponse(['error' => 'Invalid input'], 400);
         }
+
+        $isValid = $this->userService->checkUser($username, $password);
+
+        if (!$isValid) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Invalid username or password'
+            ], 401);
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Login successful',
+            'username' => $username
+        ]);
+    }
 }

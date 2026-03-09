@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Utils\TypeCast;
 
-#[Route('/score')]
+#[Route('/api/score')]
 class ScoreController
 {
     public function __construct(private ScoreService $scoreService) {}

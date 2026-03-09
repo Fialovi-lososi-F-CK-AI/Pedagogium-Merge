@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Utils\TypeCast;
 
-#[Route('/utm')]
+#[Route('/api/utm')]
 class UtmApiController
 {
     public function __construct(private EntityManagerInterface $em) {}
