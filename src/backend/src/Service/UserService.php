@@ -39,7 +39,7 @@ class UserService
 
     public function checkUser(string $username, string $password): bool
     {
-        $user = $this->userRepository->findOneBy(['username' => $username]);
+        $user = $this->repo->findOneBy(['username' => $username]);
 
         if (!$user) {
             return false;
