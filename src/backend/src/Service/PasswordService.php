@@ -1,17 +1,12 @@
 <?php
+
 namespace App\Service;
 
 class PasswordService
 {
     public function hash(string $password): string
     {
-        $hash = password_hash($password, PASSWORD_BCRYPT);
-
-        if ($hash === false) {
-            throw new \RuntimeException('Password hashing failed');
-        }
-
-        return $hash;
+        return password_hash($password, PASSWORD_BCRYPT);
     }
 
     public function verify(string $password, string $hash): bool
