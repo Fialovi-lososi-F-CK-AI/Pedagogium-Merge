@@ -15,6 +15,8 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+RUN php bin/console cache:clear --env=prod
+
 EXPOSE 80
 
-CMD ["php", "-S", "0.0.0.0:80", "-t", "public"]
+CMD ["php", "-S", "0.0.0.0:80", "-t", "public", "public/index.php"]
