@@ -291,7 +291,7 @@ export default function ReactUI() {
         #game-canvas { 
           border: 8px solid #1a1a1a; 
           border-radius: 15px;
-          background: #fff8dc; 
+          background: #1e86a6; 
           box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
@@ -301,6 +301,22 @@ export default function ReactUI() {
           .game-wrap { justify-content: center; }
           .leaderboard { width: min(420px, 92vw); }
         }
+          @media (max-width: 600px) {
+
+        .ui-container {
+        padding: 10px;
+        }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .score-board h1 {
+        font-size: 22px;
+      }
+      /* Media query pro telefony (do 600px) */
+      }
       `}</style>
     </div>
   );
