@@ -12,7 +12,7 @@ env:
 
 jobs:
   backend-cd-dev:
-    runs-on: [self-hosted]
+    runs-on: [ubuntu-latest]
     environment: dev
     permissions:
       contents: write
@@ -47,21 +47,3 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
-
-      - name: Write SSH private key
-        run: |
-          echo "${{ secrets.ANSIBLE_SSH_KEY }}" | base64 -d > key.pem
-          chmod 600 key.pem
-
-      - name: Deploy to dev via Ansible
-        run: |
-          source /opt/gh-runner/ansible_venv/bin/activate
-          mkdir -p ansible
-          echo "[dev]" > ansible/hosts.ini
-          echo "dev-node ansible_host=100.74.188.26 ansible_user=ansible ansible_ssh_private_key_file=key.pem" >> ansible/hosts.ini
-          ssh-keyscan -H 100.74.188.26 >> ~/.ssh/known_hosts
-          ansible-playbook \
-            -i ansible/hosts.ini \
-            ansible/deploy_backend_dev.yml \
-            --private-key key.pem \
-            --extra-vars "backend_image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }} symfony_database_url=${{ secrets.SYMFONY_DATABASE_URL }} api_key=${{ secrets.API_KEY }} gh_username=${{ secrets.USERNAME }} ghcr_pat=${{secrets.TOKEN}}"

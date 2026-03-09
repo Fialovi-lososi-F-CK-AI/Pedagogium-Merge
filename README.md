@@ -1,4 +1,4 @@
-# WA Project 
+# Pedagogium merge
 
 A browser-based physics game inspired by **Suika Game** (Watermelon Game), built as a school web application project. Drop and merge circles to stack up your score — with a twist: the circles feature custom sprites of real people!
 

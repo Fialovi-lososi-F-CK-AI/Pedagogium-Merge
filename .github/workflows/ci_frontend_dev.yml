@@ -7,7 +7,7 @@ on:
 jobs:
   frontend-ci-dev:
     name: Frontend CI dev
-    runs-on: [self-hosted]
+    runs-on: [ubuntu-latest]
 
     defaults:
       run:
