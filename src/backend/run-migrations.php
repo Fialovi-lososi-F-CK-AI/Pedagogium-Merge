@@ -8,6 +8,8 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
 use Doctrine\Migrations\Configuration\Migration\PhpFile;
 use Doctrine\Migrations\DependencyFactory;
+use Doctrine\Migrations\MigratorConfiguration;
+use Doctrine\Migrations\Version\Alias;
 
 $databaseUrl = getenv('DATABASE_URL');
 
@@ -26,4 +28,13 @@ $dependencyFactory = DependencyFactory::fromConnection(
     new ExistingConnection($connection)
 );
 
-$dependencyFactory->getMigrator()->migrate();
+$planCalculator = $dependencyFactory->getMigrationPlanCalculator();
+$plan = $planCalculator->getPlanUntilVersion(new Alias('latest'));
+
+$migrator = $dependencyFactory->getMigrator();
+
+$migratorConfiguration = new MigratorConfiguration();
+$migratorConfiguration->setDryRun(false);
+$migratorConfiguration->setAllOrNothing(false);
+
+$migrator->migrate($plan, $migratorConfiguration);
