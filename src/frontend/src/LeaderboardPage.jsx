@@ -46,7 +46,7 @@ export default function LeaderboardPage() {
         margin: 0,
         listStyle: "none",
         width: "100%",
-        maxWidth: "600px",
+        maxWidth: "500px",
       }}>
         {top5.map((p, i) => (
           <li key={i} style={{
