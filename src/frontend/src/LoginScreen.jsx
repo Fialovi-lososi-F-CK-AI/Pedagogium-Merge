@@ -6,8 +6,8 @@ export default function LoginScreen({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Effect to reset body margins and prevent white edges/scrollbars
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
@@ -19,22 +19,23 @@ export default function LoginScreen({ onLogin }) {
   }, []);
 
   const canSubmit = useMemo(() => {
-    if (!username.trim()) return false;
-    if (password.length < 5) return false;
-    return true;
-  }, [username, password]);
+    return username.trim().length > 0 && password.length >= 5 && !isLoading;
+  }, [username, password, isLoading]);
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!canSubmit) return;
+
     setMsg("");
+    setIsLoading(true);
 
     try {
       if (mode === "signup") {
         await registerUser(username, password);
+        
         localStorage.setItem("authUser", username);
         onLogin(username);
       } else {
-        // Basic login simulation (replace with real API call if available)
         if (username && password.length >= 5) {
           localStorage.setItem("authUser", username);
           onLogin(username);
@@ -43,7 +44,9 @@ export default function LoginScreen({ onLogin }) {
         }
       }
     } catch (err) {
-      setMsg(err?.message || "Server connection error");
+      setMsg(err.message || "Server connection error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,28 +58,27 @@ export default function LoginScreen({ onLogin }) {
 
   return (
     <div style={{
-      height: "100vh",
+      height: "100dvh",
       width: "100%",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
       background: "radial-gradient(circle at center, #1e3c72 0%, #1a1a2e 100%)",
-      boxSizing: "border-box",
-      margin: 0,
       padding: "1rem",
+      boxSizing: "border-box",
       position: "fixed",
       top: 0,
       left: 0
     }}>
       <div style={{
-        backgroundColor: "rgba(30, 30, 47, 0.9)",
-        backdropFilter: "blur(15px)",
-        borderRadius: "24px",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 0 20px rgba(0, 255, 204, 0.1)",
+        backgroundColor: "rgba(30, 30, 47, 0.95)",
+        backdropFilter: "blur(20px)",
+        borderRadius: "28px",
+        boxShadow: "0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(225, 86, 190, 0.1)",
         border: "1px solid rgba(255, 255, 255, 0.1)",
         padding: "2.5rem",
         width: "100%",
-        maxWidth: "380px",
+        maxWidth: "400px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -87,30 +89,31 @@ export default function LoginScreen({ onLogin }) {
           color: "#e156be", 
           fontSize: "2.2rem",
           textAlign: "center",
-          textShadow: "0 0 15px rgba(0,255,204,0.4)" 
+          textShadow: "0 0 15px rgba(225, 86, 190, 0.3)",
+          letterSpacing: "-1px"
         }}>
-          {mode === "signup" ? "Sign Up" : "Login"}
+          {mode === "signup" ? "Create Account" : "Login"}
         </h1>
-        <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: "2rem", fontSize: "0.95rem", textAlign: "center" }}>
+        <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: "2rem", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "2px" }}>
           Pedagogium Merge
         </p>
 
-        <form onSubmit={submit} style={{ width: "100%", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+        <form onSubmit={submit} style={{ width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <input
+            autoFocus
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             style={{
               padding: "1.1rem",
-              borderRadius: "12px",
+              borderRadius: "14px",
               border: "1px solid rgba(255,255,255,0.1)",
-              backgroundColor: "rgba(0, 0, 0, 0.2)",
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
               color: "white",
               fontSize: "1rem",
-              width: "100%",
               outline: "none",
               boxSizing: "border-box",
-              transition: "all 0.3s ease"
+              transition: "border 0.3s"
             }}
           />
 
@@ -121,39 +124,50 @@ export default function LoginScreen({ onLogin }) {
             onChange={(e) => setPassword(e.target.value)}
             style={{
               padding: "1.1rem",
-              borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,0.1)",
-              backgroundColor: "rgba(0, 0, 0, 0.2)",
+              borderRadius: "14px",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
               color: "white",
               fontSize: "1rem",
-              width: "100%",
               outline: "none",
-              boxSizing: "border-box",
-              transition: "all 0.3s ease"
+              boxSizing: "border-box"
             }}
           />
+
+          {/* ERROR MESSAGE - Displayed here if username is taken or other issues occur */}
+          {msg && (
+            <div style={{
+              backgroundColor: "rgba(255, 76, 76, 0.15)",
+              color: "#ff4c4c",
+              padding: "0.8rem",
+              borderRadius: "10px",
+              fontSize: "0.85rem",
+              textAlign: "center",
+              border: "1px solid rgba(255, 76, 76, 0.3)",
+              marginTop: "0.5rem"
+            }}>
+              ⚠️ {msg}
+            </div>
+          )}
 
           <button
             disabled={!canSubmit}
             style={{
+              marginTop: "0.5rem",
               padding: "1.1rem",
-              borderRadius: "12px",
+              borderRadius: "14px",
               border: "none",
-              backgroundColor: canSubmit ? "#e156be" : "rgba(0, 255, 204, 0.1)",
-              color: canSubmit ? "#1a1a2e" : "rgba(255,255,255,0.3)",
+              backgroundColor: canSubmit ? "#e156be" : "rgba(255, 255, 255, 0.05)",
+              color: canSubmit ? "white" : "rgba(255, 255, 255, 0.2)",
               fontWeight: "bold",
               fontSize: "1.1rem",
               cursor: canSubmit ? "pointer" : "not-allowed",
-              transition: "all 0.3s",
-              boxShadow: canSubmit ? "0 8px 20px rgba(0,255,204,0.3)" : "none",
-              textTransform: "uppercase",
-              letterSpacing: "1px"
+              transition: "all 0.3s ease",
+              boxShadow: canSubmit ? "0 10px 20px rgba(225, 86, 190, 0.3)" : "none"
             }}
           >
-            {mode === "signup" ? "Create Account" : "Enter Game"}
+            {isLoading ? "Processing..." : (mode === "signup" ? "Register" : "Enter Game")}
           </button>
-
-          {msg && <p style={{ color: "#ff4c4c", textAlign: "center", margin: "0", fontSize: "0.9rem", fontWeight: "500" }}>{msg}</p>}
         </form>
 
         <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "1.2rem", width: "100%" }}>
@@ -162,21 +176,20 @@ export default function LoginScreen({ onLogin }) {
             style={{
               background: "none",
               border: "none",
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(255,255,255,0.4)",
               fontSize: "0.9rem",
               cursor: "pointer",
-              textDecoration: "none",
               transition: "color 0.2s"
             }}
             onMouseOver={(e) => e.target.style.color = "#e156be"}
-            onMouseOut={(e) => e.target.style.color = "rgba(255,255,255,0.5)"}
+            onMouseOut={(e) => e.target.style.color = "rgba(255,255,255,0.4)"}
           >
             {mode === "login" ? "Don't have an account? Sign Up" : "Already have an account? Login"}
           </button>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
             <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
-            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.75rem", fontWeight: "bold" }}>OR</span>
+            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem", fontWeight: "bold" }}>OR</span>
             <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
           </div>
 
@@ -184,21 +197,16 @@ export default function LoginScreen({ onLogin }) {
             onClick={loginAsGuest}
             style={{
               padding: "0.9rem",
-              borderRadius: "12px",
+              borderRadius: "14px",
               border: "1px solid rgba(0, 255, 204, 0.3)",
               backgroundColor: "transparent",
-              color: "#e156be",
+              color: "#00ffcc",
               fontWeight: "bold",
               cursor: "pointer",
-              transition: "all 0.2s",
-              width: "100%"
+              transition: "all 0.2s"
             }}
-            onMouseOver={(e) => {
-              e.target.style.backgroundColor = "rgba(0, 255, 204, 0.1)";
-            }}
-            onMouseOut={(e) => {
-              e.target.style.backgroundColor = "transparent";
-            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = "rgba(0, 255, 204, 0.1)"}
+            onMouseOut={(e) => e.target.style.backgroundColor = "transparent"}
           >
             Play as Guest
           </button>
