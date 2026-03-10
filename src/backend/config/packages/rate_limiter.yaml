@@ -1,0 +1,16 @@
+framework:
+    rate_limiter:
+        login_api:
+            policy: 'fixed_window'
+            limit: 5
+            interval: '1 minute'
+
+        score_submit:
+            policy: 'fixed_window'
+            limit: 10
+            interval: '1 minute'
+
+        utm_track:
+            policy: 'fixed_window'
+            limit: 30
+            interval: '1 minute'

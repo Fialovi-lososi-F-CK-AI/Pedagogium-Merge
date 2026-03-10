@@ -6,16 +6,27 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use App\Utils\TypeCast;
 
 #[Route('/api/utm')]
 class UtmApiController
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    public function __construct(
+        private EntityManagerInterface $em,
+        private RateLimiterFactory $utmTrackLimiter
+    ) {}
 
     #[Route('/track', name: 'utm_track', methods: ['POST'])]
     public function track(Request $request): JsonResponse
     {
+        $limiter = $this->utmTrackLimiter->create($request->getClientIp() ?? 'anon');
+        $limit = $limiter->consume();
+
+        if (!$limit->isAccepted()) {
+            return new JsonResponse(['error' => 'Too many requests'], 429);
+        }
+
         /** @var array<string, mixed> $data */
         $data = json_decode($request->getContent(), true) ?? [];
 

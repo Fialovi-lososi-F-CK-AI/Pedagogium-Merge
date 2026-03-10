@@ -5,12 +5,16 @@ use App\Service\UserService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use App\Utils\TypeCast;
 
 #[Route('/api/user')]
 class UserController
 {
-    public function __construct(private UserService $userService) {}
+    public function __construct(
+        private UserService $userService,
+        private RateLimiterFactory $loginApiLimiter
+    ) {}
 
     #[Route('/register', name: 'user_register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
@@ -37,6 +41,13 @@ class UserController
     #[Route('/login', name: 'user_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
     {
+        $limiter = $this->loginApiLimiter->create($request->getClientIp() ?? 'anon');
+        $limit = $limiter->consume();
+
+        if (!$limit->isAccepted()) {
+            return new JsonResponse(['error' => 'Too many requests'], 429);
+        }
+
         /** @var array<string, mixed> $data */
         $data = json_decode($request->getContent(), true) ?? [];
 

@@ -5,16 +5,27 @@ use App\Service\ScoreService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use App\Utils\TypeCast;
 
 #[Route('/api/score')]
 class ScoreController
 {
-    public function __construct(private ScoreService $scoreService) {}
+    public function __construct(
+        private ScoreService $scoreService,
+        private RateLimiterFactory $scoreSubmitLimiter
+    ) {}
 
     #[Route('/submit', name: 'score_submit', methods: ['POST'])]
     public function submit(Request $request): JsonResponse
     {
+        $limiter = $this->scoreSubmitLimiter->create($request->getClientIp() ?? 'anon');
+        $limit = $limiter->consume();
+
+        if (!$limit->isAccepted()) {
+            return new JsonResponse(['error' => 'Too many requests'], 429);
+        }
+
         /** @var array<string, mixed> $data */
         $data = json_decode($request->getContent(), true) ?? [];
 
@@ -42,4 +53,3 @@ class ScoreController
         return new JsonResponse($output);
     }
 }
-// :D
