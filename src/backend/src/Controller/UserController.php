@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use App\Service\UserService;
@@ -16,6 +17,31 @@ class UserController
         private RateLimiterFactory $loginApiLimiter
     ) {}
 
+    #[Route('/register', name: 'user_register', methods: ['POST'])]
+    public function register(Request $request): JsonResponse
+    {
+        $data = TypeCast::toArray(json_decode($request->getContent(), true));
+
+        $username = TypeCast::toString($data['username'] ?? '');
+        $password = TypeCast::toString($data['password'] ?? '');
+
+        if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
+            return new JsonResponse(['error' => 'Invalid username format'], 400);
+        }
+
+        if (strlen($password) < 6) {
+            return new JsonResponse(['error' => 'Password too short'], 400);
+        }
+
+        $result = $this->userService->register($username, $password);
+
+        if (isset($result['error'])) {
+            return new JsonResponse($result, 400);
+        }
+
+        return new JsonResponse($result, 201);
+    }
+
     #[Route('/login', name: 'user_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
     {
@@ -27,7 +53,7 @@ class UserController
             return new JsonResponse(['error' => 'Too many requests'], 429);
         }
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = TypeCast::toArray(json_decode($request->getContent(), true));
 
         $username = TypeCast::toString($data['username'] ?? '');
         $password = TypeCast::toString($data['password'] ?? '');

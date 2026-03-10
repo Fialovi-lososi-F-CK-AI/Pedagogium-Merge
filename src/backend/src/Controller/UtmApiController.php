@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\UtmVisit;
@@ -28,7 +29,7 @@ class UtmApiController
             return new JsonResponse(['error' => 'Too many requests'], 429);
         }
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = TypeCast::toArray(json_decode($request->getContent(), true));
 
         $source   = TypeCast::toString($data['utm_source'] ?? '');
         $medium   = TypeCast::toString($data['utm_medium'] ?? '');
