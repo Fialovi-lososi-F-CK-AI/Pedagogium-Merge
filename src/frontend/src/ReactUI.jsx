@@ -1,323 +1,215 @@
-import React, { useEffect, useMemo, useState } from "react";
-import initGame from "./initGame.js";
-import { trackUTM } from "./utmTracker";
-import { fetchTop5 } from "./leaderboardApi";
-import { registerUser } from "./userApi";
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
+import LoginScreen from "./LoginScreen";
+import GameScreen from "./GameScreen";
+import LeaderboardPage from "./LeaderboardPage";
 
-export default function ReactUI() {
-  const [score, setScore] = useState(0);
+function AppLayout({ user, logout }) {
+  const location = useLocation();
+  const isGameRoute = location.pathname === "/";
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // leaderboard
-  const [top5, setTop5] = useState([]);
-  const [lbError, setLbError] = useState("");
-
-  const loadTop5 = () => {
-    setLbError("");
-    fetchTop5()
-      .then((data) => setTop5(Array.isArray(data) ? data : []))
-      .catch((e) => {
-        console.warn(e);
-        setLbError("Leaderboard cannot be loaded.");
-      });
+  const toggleSidebar = (e) => {
+    e.stopPropagation();
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // auth
-  const [mode, setMode] = useState("login");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [authUser, setAuthUser] = useState(() => localStorage.getItem("authUser") || "");
-  const [authMsg, setAuthMsg] = useState("");
+  const closeSidebar = () => setIsSidebarOpen(false);
 
-  const canSubmit = useMemo(() => {
-    if (!username.trim()) return false;
-    if (password.length < 5) return false;
-    return true;
-  }, [username, password]);
+  return (
+    <div style={{ 
+      display: "flex", 
+      flexDirection: "column", 
+      height: "100vh", 
+      width: "100vw", 
+      background: "#1a1a2e", 
+      overflow: "hidden",
+      position: "relative"
+    }}>
+      
+      {/* HEADER */}
+      <header style={{
+        height: "60px",
+        padding: "0 1.5rem",
+        backgroundColor: "rgba(30,30,47,0.98)",
+        color: "white",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        zIndex: 100,
+        boxShadow: "0 2px 10px rgba(0,0,0,0.5)",
+        borderBottom: "1px solid rgba(0, 255, 204, 0.3)"
+      }}>
+        <button 
+          onClick={toggleSidebar}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#e156be",
+            fontSize: "2rem",
+            cursor: "pointer",
+            padding: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            outline: "none"
+          }}
+        >
+          ☰
+        </button>
+        
+        <div style={{ fontWeight: "bold", fontSize: "1.2rem", color: "#e156be", textTransform: "uppercase", letterSpacing: "1px" }}>
+          Pedagogium Merge
+        </div>
+        <div style={{ width: "45px" }}></div>
+      </header>
+
+      {/* OVERLAY */}
+      <div 
+        onClick={closeSidebar}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(0,0,0,0.7)",
+          zIndex: 998,
+          display: isSidebarOpen ? "block" : "none",
+          backdropFilter: "blur(3px)",
+          transition: "opacity 0.3s ease"
+        }}
+      />
+      {/* SIDEBAR */}
+<div style={{
+  position: "fixed",
+  top: 0,
+  left: isSidebarOpen ? "0" : "-300px",
+  width: "280px",
+  height: "100vh",
+  backgroundColor: "#161625",
+  zIndex: 999,
+  transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s",
+  
+  visibility: isSidebarOpen ? "visible" : "hidden", 
+  boxShadow: isSidebarOpen ? "5px 0 25px rgba(0,0,0,0.8)" : "none", 
+  
+  display: "flex",
+  flexDirection: "column",
+  padding: "2rem 1rem",
+  boxSizing: "border-box"
+}}>
+  <div style={{ textAlign: "right", marginBottom: "1rem" }}>
+    <button 
+      onClick={closeSidebar} 
+      style={{ background: "none", border: "none", color: "#ff4c4c", fontSize: "1.8rem", cursor: "pointer" }}
+    >
+      ✕
+    </button>
+  </div>
+
+  <div style={{ padding: "1rem 0", marginBottom: "1.5rem", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem" }}>PLAYER</span>
+    <div style={{ fontSize: "1.4rem", color: "#e156be", fontWeight: "bold" }}>{user}</div>
+  </div>
+
+  <nav style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+    <NavLink 
+      to="/" 
+      onClick={closeSidebar}
+      style={({ isActive }) => ({ 
+        color: isActive ? "#e156be" : "white", 
+        textDecoration: "none", 
+        fontSize: "1.1rem",
+        padding: "15px",
+        borderRadius: "10px",
+        backgroundColor: isActive ? "rgba(0,255,204,0.15)" : "transparent",
+        display: "block",
+        border: isActive ? "1px solid rgba(0,255,204,0.3)" : "1px solid transparent",
+        transition: "0.2s"
+      })}
+    >
+      🎮 Play Game
+    </NavLink>
+    
+    <NavLink 
+      to="/leaderboard" 
+      onClick={closeSidebar}
+      style={({ isActive }) => ({ 
+        color: isActive ? "#e156be" : "white", 
+        textDecoration: "none", 
+        fontSize: "1.1rem",
+        padding: "15px",
+        borderRadius: "10px",
+        backgroundColor: isActive ? "rgba(0,255,204,0.15)" : "transparent",
+        display: "block",
+        border: isActive ? "1px solid rgba(0,255,204,0.3)" : "1px solid transparent",
+        transition: "0.2s"
+      })}
+    >
+      🏆 Leaderboard
+    </NavLink>
+
+    <button 
+      onClick={logout} 
+      style={{ 
+        marginTop: "1.5rem",
+        cursor: "pointer", 
+        backgroundColor: "#ff4c4c22", 
+        border: "1px solid #ff4c4c", 
+        color: "#ff4c4c", 
+        borderRadius: "10px", 
+        padding: "1rem", 
+        fontWeight: "bold",
+        transition: "0.2s",
+        textAlign: "center"
+      }}
+    >
+      LOG OUT
+    </button>
+  </nav>
+</div>
+
+
+
+      {/* MAIN CONTENT */}
+      <main style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        <div style={{ 
+          display: isGameRoute ? "flex" : "none", 
+          height: "100%", 
+          width: "100%" 
+        }}>
+          <GameScreen user={user} />
+        </div>
+
+        {!isGameRoute && (
+          <div style={{ height: "100%", width: "100%", overflowY: "auto", padding: "1rem" }}>
+            <Routes>
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+            </Routes>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default function ReactUI() {
+  const [user, setUser] = useState(localStorage.getItem("authUser") || "");
 
   const logout = () => {
     localStorage.removeItem("authUser");
-    setAuthUser("");
-    setAuthMsg("Logged out.");
+    setUser("");
+    window.location.reload(); 
   };
 
-  const onSubmitAuth = async (e) => {
-    e.preventDefault();
-    setAuthMsg("");
-
-    const u = username.trim();
-    if (!u) return setAuthMsg("Enter username.");
-    if (password.length < 5) return setAuthMsg("Password must have at least 5 characters.");
-
-    try {
-      if (mode === "signup") {
-        await registerUser(u, password);
-        localStorage.setItem("authUser", u);
-        setAuthUser(u);
-        setAuthMsg("Registration successful. Logged in.");
-      } else {
-        setAuthMsg("Login is not implemented on backend yet.");
-      }
-    } catch (err) {
-      setAuthMsg(err?.message || "Error.");
-    }
-  };
-
-  useEffect(() => {
-    initGame();
-    trackUTM();
-    loadTop5();
-
-    const handleScore = (e) => setScore((prev) => prev + e.detail);
-    window.addEventListener("addScore", handleScore);
-    return () => window.removeEventListener("addScore", handleScore);
-  }, []);
+  if (!user) {
+    return <LoginScreen onLogin={setUser} />;
+  }
 
   return (
-    <div className="ui-container">
-      {/* TOPBAR: 3 sloupce (vlevo placeholder, uprostřed score, vpravo auth) */}
-      <div className="topbar">
-        <div className="topbar-left" />
-
-        <div className="score-board">
-          <h1>Skóre: {score}</h1>
-        </div>
-
-        <div className="auth-box">
-          {authUser ? (
-            <div className="auth-logged">
-              <div className="auth-line">
-                <span>Přihlášen:</span> <strong>{authUser}</strong>
-              </div>
-              <button className="btn" onClick={logout}>Odhlásit</button>
-              {authMsg && <div className="auth-msg">{authMsg}</div>}
-            </div>
-          ) : (
-            <form onSubmit={onSubmitAuth} className="auth-form">
-              <div className="auth-tabs">
-                <button
-                  type="button"
-                  className={`tab ${mode === "login" ? "active" : ""}`}
-                  onClick={() => setMode("login")}
-                >
-                  Login
-                </button>
-                <button
-                  type="button"
-                  className={`tab ${mode === "signup" ? "active" : ""}`}
-                  onClick={() => setMode("signup")}
-                >
-                  Sign up
-                </button>
-              </div>
-
-              <input
-                className="inp"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
-              />
-              <input
-                className="inp"
-                placeholder="Password (min 5)"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              />
-
-              <button className="btn primary" type="submit" disabled={!canSubmit}>
-                {mode === "signup" ? "Create Account" : "Log In"}
-              </button>
-
-              {authMsg && <div className="auth-msg">{authMsg}</div>}
-            </form>
-          )}
-        </div>
-      </div>
-
-      {/* MAIN: leaderboard vlevo, hra uprostřed, vpravo placeholder */}
-      <div className="main">
-        <div className="leaderboard">
-          <div className="leaderboard-header">
-            <h2>Top 5</h2>
-            <button className="btn" onClick={loadTop5}>Obnovit</button>
-          </div>
-
-          {lbError ? (
-            <div className="lb-error">{lbError}</div>
-          ) : (
-            <ol className="lb-list">
-              {top5.map((row, i) => (
-                <li key={row.id ?? `${row.username ?? "u"}-${i}`} className="lb-item">
-                  <span className="lb-name">{row.username ?? row.name ?? "anon"}</span>
-                  <span className="lb-score">{row.score ?? 0}</span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-
-        <div className="game-wrap">
-          <canvas id="game-canvas" width="400" height="600"></canvas>
-        </div>
-
-        <div className="main-right" />
-      </div>
-
-      <style>{`
-        .ui-container { 
-          display: flex; 
-          flex-direction: column; 
-          align-items: center; 
-          background: #242424; 
-          min-height: 100vh; 
-          color: white; 
-          font-family: sans-serif;
-          padding: 16px;
-          box-sizing: border-box;
-        }
-
-        .topbar {
-          width: min(1100px, 96vw);
-          display: grid;
-          grid-template-columns: 260px 1fr 320px;
-          align-items: start;
-          gap: 12px;
-          margin-bottom: 14px;
-        }
-
-        .score-board { 
-          padding: 16px 20px; 
-          background: rgba(0,0,0,0.5); 
-          border-radius: 12px;
-          text-align: center; 
-        }
-
-        .auth-box {
-          background: rgba(0,0,0,0.35);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 12px;
-          padding: 12px;
-        }
-
-        .auth-form { display: flex; flex-direction: column; gap: 8px; }
-        .auth-tabs { display: flex; gap: 8px; margin-bottom: 6px; }
-        .tab {
-          flex: 1;
-          background: #111;
-          color: white;
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 10px;
-          padding: 6px 10px;
-          cursor: pointer;
-        }
-        .tab.active {
-          border-color: rgba(255,255,255,0.35);
-          background: rgba(255,255,255,0.06);
-        }
-
-        .inp {
-          background: #111;
-          color: white;
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 10px;
-          padding: 8px 10px;
-          outline: none;
-        }
-        .inp:focus { border-color: rgba(255,255,255,0.35); }
-
-        .btn {
-          background: #111;
-          color: white;
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 10px;
-          padding: 7px 10px;
-          cursor: pointer;
-        }
-        .btn:hover { opacity: 0.92; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn.primary {
-          background: rgba(255,255,255,0.1);
-          border-color: rgba(255,255,255,0.25);
-          font-weight: 700;
-        }
-
-        .auth-logged { display: flex; flex-direction: column; gap: 10px; }
-        .auth-line { opacity: 0.95; }
-        .auth-msg { margin-top: 6px; font-size: 13px; opacity: 0.9; }
-
-        .main {
-          width: min(1100px, 96vw);
-          display: grid;
-          grid-template-columns: 260px 1fr 320px;
-          align-items: start;
-          gap: 12px;
-        }
-
-        .game-wrap {
-          display: flex;
-          justify-content: center;
-        }
-
-        .leaderboard {
-          background: rgba(0,0,0,0.35);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 12px;
-          padding: 12px 14px;
-        }
-        .leaderboard-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 8px;
-        }
-        .leaderboard h2 { margin: 0; font-size: 18px; }
-
-        .lb-error { color: #ffb3b3; }
-        .lb-list { margin: 0; padding-left: 20px; }
-        .lb-item {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 6px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-        .lb-item:last-child { border-bottom: 0; }
-        .lb-name { opacity: 0.95; }
-        .lb-score { font-weight: 700; }
-
-        #game-canvas { 
-          border: 8px solid #1a1a1a; 
-          border-radius: 15px;
-          background: #1e86a6; 
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        @media (max-width: 900px) {
-          .topbar { grid-template-columns: 1fr; }
-          .main { grid-template-columns: 1fr; }
-          .game-wrap { justify-content: center; }
-          .leaderboard { width: min(420px, 92vw); }
-        }
-          @media (max-width: 600px) {
-
-        .ui-container {
-        padding: 10px;
-        }
-
-      .topbar {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .score-board h1 {
-        font-size: 22px;
-      }
-      /* Media query pro telefony (do 600px) */
-      }
-      `}</style>
-    </div>
+    <Router>
+      <AppLayout user={user} logout={logout} />
+    </Router>
   );
 }
