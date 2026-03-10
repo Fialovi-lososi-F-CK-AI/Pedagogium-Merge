@@ -25,8 +25,12 @@ class UserController
         $username = TypeCast::toString($data['username'] ?? '');
         $password = TypeCast::toString($data['password'] ?? '');
 
-        if ($username === '' || $password === '') {
-            return new JsonResponse(['error' => 'Invalid input'], 400);
+        if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
+            return new JsonResponse(['error' => 'Invalid username format'], 400);
+        }
+
+        if (strlen($password) < 6) {
+            return new JsonResponse(['error' => 'Password too short'], 400);
         }
 
         $result = $this->userService->register($username, $password);
@@ -54,8 +58,12 @@ class UserController
         $username = TypeCast::toString($data['username'] ?? '');
         $password = TypeCast::toString($data['password'] ?? '');
 
-        if ($username === '' || $password === '') {
-            return new JsonResponse(['error' => 'Invalid input'], 400);
+        if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
+            return new JsonResponse(['error' => 'Invalid username format'], 400);
+        }
+
+        if ($password === '') {
+            return new JsonResponse(['error' => 'Invalid password'], 400);
         }
 
         $isValid = $this->userService->checkUser($username, $password);

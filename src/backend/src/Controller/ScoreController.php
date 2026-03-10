@@ -32,11 +32,17 @@ class ScoreController
         $username = TypeCast::toString($data['username'] ?? '');
         $score    = TypeCast::toInt($data['score'] ?? 0);
 
-        if ($username === '' || $score <= 0) {
-            return new JsonResponse(['error' => 'Invalid input'], 400);
+        // ochrana proti injection
+        if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
+            return new JsonResponse(['error' => 'Invalid username format'], 400);
+        }
+
+        if ($score <= 0) {
+            return new JsonResponse(['error' => 'Invalid score'], 400);
         }
 
         $result = $this->scoreService->saveHighscore($username, $score);
+
         return new JsonResponse($result);
     }
 
