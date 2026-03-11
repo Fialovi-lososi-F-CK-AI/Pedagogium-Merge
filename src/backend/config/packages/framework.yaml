@@ -2,6 +2,12 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
+    trusted_proxies: '172.19.0.2'
+    trusted_headers:
+        - x-forwarded-for
+        - x-forwarded-host
+        - x-forwarded-proto
+
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
