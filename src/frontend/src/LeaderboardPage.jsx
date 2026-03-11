@@ -3,8 +3,11 @@ import { fetchTop5 } from "./leaderboardApi";
 
 export default function LeaderboardPage() {
   const [top5, setTop5] = useState([]);
+
   const [isRefreshing, setIsRefreshing] = useState(false);
+
   const currentUser = localStorage.getItem("authUser") || "";
+
   const lastRefreshRef = useRef(0);
 
   const loadTop5 = async (force = false) => {
