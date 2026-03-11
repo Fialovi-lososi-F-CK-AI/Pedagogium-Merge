@@ -75,7 +75,7 @@ export default function initGame() {
         let nextFruitLevel = k.choose([0, 1, 2]); 
         let currentFruit = null;
 
-        const LOSE_LINE = 500;
+        const LOSE_LINE = 100;
         const PREVIEW_Y = LOSE_LINE - 50;
 
         const nextPreviewContainer = k.add([
@@ -92,7 +92,7 @@ export default function initGame() {
         ]);
 
         nextPreviewContainer.add([
-            k.text("next", { size: 10, font: "sans-serif" }),
+            k.text("NEXT", { size: 15, font: "sans-serif" }),
             k.pos(0, -38),
             k.anchor("center"),
             k.color(COLORS.highlight),
