@@ -5,14 +5,14 @@ export default function initGame() {
     if (!canvas) return;
 
     const COLORS = {
-        background: [26, 26, 46],
-        walls: [0, 255, 204],
-        outline: [255, 255, 255],
+        void: [4, 17, 36],       // #041124
+        deep: [10, 57, 118],     // #0A3976
+        primary: [38, 116, 188],  // #2674BC
+        accent: [85, 152, 211],   // #5598D3
+        highlight: [190, 218, 243] // #BEDAF3
     };
 
-    // Nastavení stylu canvasu
     canvas.style.imageRendering = "pixelated";
-    canvas.style.imageRendering = "crisp-edges";
     canvas.style.touchAction = "none";
     canvas.style.display = "block";
     canvas.style.margin = "auto";
@@ -21,13 +21,12 @@ export default function initGame() {
         global: false,
         canvas: canvas,
         width: 400,
-        height: 550,
-        background: COLORS.background,
+        height: 600, 
+        background: COLORS.void,
         pixelDensity: window.devicePixelRatio || 2,
         texFilter: "linear",
     });
 
-    // Načítání spritů
     k.loadSprite("losos", "/losos.png");
     k.loadSprite("logo", "/logo.png");
     k.loadSprite("studenkova", "/studenkova.png");
@@ -52,106 +51,98 @@ export default function initGame() {
     ];
 
     const wallWidth = 8;
-
-    // Ovládání myší / prstem
     let pointerX = k.width() / 2;
     let activePointerUpHandler = null;
-    let activePointerMoveHandler = null;
 
     const updatePointerFromEvent = (e) => {
         const rect = canvas.getBoundingClientRect();
-
-        let clientX = 0;
-
-        if (e.touches && e.touches[0]) {
-            clientX = e.touches[0].clientX;
-        } else if (e.changedTouches && e.changedTouches[0]) {
-            clientX = e.changedTouches[0].clientX;
-        } else {
-            clientX = e.clientX;
-        }
-
-        const relativeX = ((clientX - rect.left) / rect.width) * k.width();
-        pointerX = relativeX;
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        pointerX = ((clientX - rect.left) / rect.width) * k.width();
     };
 
-    const globalPointerDown = (e) => {
+    canvas.addEventListener("pointerdown", updatePointerFromEvent);
+    canvas.addEventListener("pointermove", updatePointerFromEvent);
+    canvas.addEventListener("pointerup", (e) => {
         updatePointerFromEvent(e);
-    };
+        if (activePointerUpHandler) activePointerUpHandler();
+    });
 
-    const globalPointerMove = (e) => {
-        updatePointerFromEvent(e);
-        if (activePointerMoveHandler) activePointerMoveHandler(e);
-    };
-
-    const globalPointerUp = (e) => {
-        updatePointerFromEvent(e);
-        if (activePointerUpHandler) activePointerUpHandler(e);
-    };
-
-    canvas.addEventListener("pointerdown", globalPointerDown);
-    canvas.addEventListener("pointermove", globalPointerMove);
-    canvas.addEventListener("pointerup", globalPointerUp);
-    canvas.addEventListener("pointercancel", globalPointerUp);
-
-    // DEFINICE SCÉNY
     k.scene("main", () => {
-        k.setGravity(1000);
+        k.setGravity(3000);
 
         let isGameOver = false;
         let dropLocked = false;
-        let restartLocked = false;
-        let lastDropTime = 0;
-
-        const LOSE_LINE = 50;
-        const PREVIEW_Y = LOSE_LINE - 22;
+        let nextFruitLevel = k.choose([0, 1, 2]); 
         let currentFruit = null;
 
-        const clampSpawnX = (x, radius = 30) => {
-            return k.clamp(x, wallWidth + radius, k.width() - wallWidth - radius);
-        };
+        const LOSE_LINE = 500;
+        const PREVIEW_Y = LOSE_LINE - 50;
 
-        const getPreviewX = (level) => {
-            return clampSpawnX(pointerX || k.width() / 2, FRUITS[level].radius);
-        };
+        const nextPreviewContainer = k.add([
+            k.pos(k.width() - 50, 55),
+            k.fixed()
+        ]);
 
-        function isSpawnBlocked(spawnX, spawnY, level) {
-            const radius = FRUITS[level].radius;
+        nextPreviewContainer.add([
+            k.circle(30),
+            k.color(COLORS.deep),
+            k.outline(2, k.rgb(COLORS.primary)),
+            k.anchor("center"),
+            k.opacity(0.7)
+        ]);
 
-            return k.get("fruit").some((f) => {
-                if (!f.isDropped) return false;
+        nextPreviewContainer.add([
+            k.text("next", { size: 10, font: "sans-serif" }),
+            k.pos(0, -38),
+            k.anchor("center"),
+            k.color(COLORS.highlight),
+            k.z(10)
+        ]);
 
-                const otherRadius = FRUITS[f.level].radius;
-                const dx = f.pos.x - spawnX;
-                const dy = f.pos.y - spawnY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+        let nextVisual = null;
+        function updateNextVisual(level) {
+            if (nextVisual) k.destroy(nextVisual);
+            const data = FRUITS[level];
+            const scale = 45 / 267;
 
-                return distance < radius + otherRadius - 4;
-            });
+            nextVisual = nextPreviewContainer.add([
+                k.sprite(data.sprite),
+                k.scale(scale),
+                k.anchor("center"),
+            ]);
         }
 
-        // Podlaha a stěny
+        const guideLine = k.add([
+            k.rect(2, k.height()),
+            k.pos(0, 0),
+            k.color(COLORS.primary),
+            k.opacity(0.2),
+            k.anchor("top")
+        ]);
+
+        const clampSpawnX = (x, radius) => k.clamp(x, wallWidth + radius, k.width() - wallWidth - radius);
+
         const addWall = (x, y, w, h) => {
             k.add([
                 k.pos(x, y),
                 k.rect(w, h),
                 k.area(),
-                k.outline(2, k.rgb(COLORS.walls)),
-                k.color(30, 30, 60),
+                k.color(COLORS.void),
+                k.outline(2, k.rgb(COLORS.primary)),
                 k.body({ isStatic: true }),
                 "border"
             ]);
         };
 
-        addWall(0, k.height() - wallWidth, k.width(), wallWidth); // Podlaha
-        addWall(0, 0, wallWidth, k.height()); // Levá stěna
-        addWall(k.width() - wallWidth, 0, wallWidth, k.height()); // Pravá stěna
+        addWall(0, k.height() - wallWidth, k.width(), wallWidth); 
+        addWall(0, 0, wallWidth, k.height()); 
+        addWall(k.width() - wallWidth, 0, wallWidth, k.height()); 
 
         k.add([
             k.rect(k.width(), 2),
             k.pos(0, LOSE_LINE),
-            k.color(255, 0, 0),
-            k.opacity(0.3),
+            k.color(255, 50, 50),
+            k.opacity(0.4),
         ]);
 
         function spawnFruitAt(x, y, level, isDropped = false) {
@@ -162,7 +153,6 @@ export default function initGame() {
             const fruit = k.add([
                 k.pos(x, y),
                 k.anchor("center"),
-                k.rotate(0),
                 "fruit",
                 {
                     level,
@@ -172,111 +162,69 @@ export default function initGame() {
                 }
             ]);
 
-            if (data.sprite) {
-                fruit.use(k.sprite(data.sprite));
-                fruit.use(k.scale(targetScale));
-            }
-
+            fruit.use(k.sprite(data.sprite));
+            fruit.use(k.scale(targetScale));
             fruit.use(k.area({ shape: new k.Circle(k.vec2(0), data.radius / targetScale) }));
+            
             fruit.use(k.body({
                 isStatic: !isDropped,
-                friction: 0.92,
-                restitution: 0.01,
-                drag: 0.45
+                friction: 0.5,
+                restitution: 0.1,
             }));
 
             if (isDropped) {
-                fruit.use(k.outline(1, k.rgb(255, 255, 255)));
+                fruit.use(k.outline(2, k.rgb(COLORS.highlight)));
             }
 
             return fruit;
         }
 
-        function gameOver() {
-            if (isGameOver) return;
-            isGameOver = true;
-
-            k.get("fruit").forEach((f) => {
-                f.paused = true;
-            });
-
-            window.dispatchEvent(new CustomEvent("gameOver"));
-        }
-
         const prepareNext = () => {
             if (isGameOver) return;
+            const levelToSpawn = nextFruitLevel;
+            nextFruitLevel = k.choose([0, 1, 2]);
+            updateNextVisual(nextFruitLevel);
 
-            const randomLevel = k.choose([0, 1, 2]);
-            const spawnX = getPreviewX(randomLevel);
-            const spawnY = PREVIEW_Y;
-
-            if (isSpawnBlocked(spawnX, spawnY, randomLevel)) {
-                gameOver();
-                return;
-            }
-
-            currentFruit = spawnFruitAt(spawnX, spawnY, randomLevel, false);
+            const radius = FRUITS[levelToSpawn].radius;
+            currentFruit = spawnFruitAt(clampSpawnX(pointerX, radius), PREVIEW_Y, levelToSpawn, false);
             dropLocked = false;
         };
 
-        const dropCurrentFruit = () => {
-            const now = Date.now();
-            if (now - lastDropTime < 250) return;
-            lastDropTime = now;
-
-            if (isGameOver) return;
-            if (dropLocked) return;
-
-            if (currentFruit && !currentFruit.isDropped) {
-                dropLocked = true;
-
-                const x = currentFruit.pos.x;
-                const y = currentFruit.pos.y;
-                const level = currentFruit.level;
-
-                k.destroy(currentFruit);
-                currentFruit = null;
-
-                spawnFruitAt(x, y, level, true);
-                k.wait(0.8, prepareNext);
-            }
-        };
-
-        activePointerMoveHandler = () => {};
         activePointerUpHandler = () => {
-            dropCurrentFruit();
-        };
+            if (isGameOver || dropLocked || !currentFruit) return;
+            dropLocked = true;
 
-        k.wait(0.2, prepareNext);
+            const { x, y } = currentFruit.pos;
+            const level = currentFruit.level;
+
+            k.destroy(currentFruit);
+            currentFruit = null;
+
+            spawnFruitAt(x, y, level, true);
+            k.wait(0.6, prepareNext);
+        };
 
         k.onUpdate(() => {
             if (isGameOver) return;
 
-            if (currentFruit && !currentFruit.isDropped) {
+            if (currentFruit) {
                 const radius = FRUITS[currentFruit.level].radius;
-                currentFruit.pos.x = clampSpawnX(pointerX || k.width() / 2, radius);
-                currentFruit.pos.y = PREVIEW_Y;
+                const targetX = clampSpawnX(pointerX, radius);
+                currentFruit.pos.x = targetX;
+                guideLine.pos.x = targetX;
             }
         });
 
         k.onUpdate("fruit", (f) => {
-            if (isGameOver) return;
-            if (!f.isDropped) return;
-
-            const radius = FRUITS[f.level].radius;
-            const topOfFruit = f.pos.y - radius;
-
-            if (topOfFruit < LOSE_LINE) {
+            if (isGameOver || !f.isDropped) return;
+            if (f.pos.y - FRUITS[f.level].radius < LOSE_LINE) {
                 f.timeAboveLine += k.dt();
-                if (f.timeAboveLine > 2) {
-                    gameOver();
-                }
+                if (f.timeAboveLine > 4) gameOver();
             } else {
                 f.timeAboveLine = 0;
             }
         });
-
-        k.onCollide("fruit", "fruit", (a, b) => {
+            k.onCollide("fruit", "fruit", (a, b) => {
             if (a.level !== b.level || a.isMerging || b.isMerging) return;
             if (a.level >= FRUITS.length - 1) return;
 
@@ -286,6 +234,55 @@ export default function initGame() {
             const nextLevel = a.level + 1;
             const pos = a.pos.lerp(b.pos, 0.5);
 
+            const PARTICLE_COUNT = 15; 
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const size = k.rand(6, 12); 
+                const speed = k.rand(80, 250); 
+
+                k.add([
+                    k.pos(pos),
+                    k.rect(size, size), 
+                    k.color(k.choose([k.rgb(COLORS.highlight), k.rgb(COLORS.accent)])),
+                    k.outline(2, k.rgb(COLORS.primary)),
+                    k.opacity(1),
+                    k.anchor("center"),
+                    k.rotate(k.rand(0, 360)),
+                    k.move(k.rand(0, 360), speed),
+                    k.offscreen({ destroy: true }),
+                    "particle",
+                    {
+                        rotSpeed: k.rand(-200, 200),
+                        update() {
+                            this.opacity -= k.dt() * 1.5; 
+                            this.angle += this.rotSpeed * k.dt(); 
+                            this.scale = k.vec2(this.opacity);
+                            if (this.opacity <= 0) k.destroy(this);
+                        }
+                    }
+                ]);
+            }
+
+            k.add([
+                k.circle(FRUITS[a.level].radius * 2),
+                k.pos(pos),
+                k.anchor("center"),
+                k.color(COLORS.highlight),
+                k.opacity(0.4),
+                k.scale(0.5),
+                "shockwave",
+                {
+                    update() {
+                        this.scale = this.scale.add(k.vec2(k.dt() * 4));
+                        this.opacity -= k.dt() * 2;
+                        if (this.opacity <= 0) k.destroy(this);
+                    }
+                }
+            ]);
+
+            if (a.level > 5) {
+                k.shake(4);
+            }
+
             k.destroy(a);
             k.destroy(b);
 
@@ -293,15 +290,14 @@ export default function initGame() {
             window.dispatchEvent(new CustomEvent("addScore", { detail: FRUITS[nextLevel].score }));
         });
 
-        k.onMousePress(() => {
-            if (!isGameOver) return;
-            if (restartLocked) return;
+        function gameOver() {
+            if (isGameOver) return;
+            isGameOver = true;
+            window.dispatchEvent(new CustomEvent("gameOver"));
+        }
 
-            restartLocked = true;
-            activePointerUpHandler = null;
-            activePointerMoveHandler = null;
-            k.go("main");
-        });
+        updateNextVisual(nextFruitLevel);
+        k.wait(0.2, prepareNext);
     });
 
     k.go("main");

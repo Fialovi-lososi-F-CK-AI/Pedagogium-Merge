@@ -109,7 +109,7 @@ export default function LoginScreen({ onLogin }) {
       }}>
         <h1 style={{ 
           margin: "0 0 0.5rem 0", 
-          color: "#e156be", 
+          color: "#5598D3", 
           fontSize: "2.2rem",
           textAlign: "center",
           textShadow: "0 0 15px rgba(225, 86, 190, 0.3)",
@@ -180,7 +180,7 @@ export default function LoginScreen({ onLogin }) {
               padding: "1.1rem",
               borderRadius: "14px",
               border: "none",
-              backgroundColor: canSubmit ? "#e156be" : "rgba(255, 255, 255, 0.05)",
+              backgroundColor: canSubmit ? "#5598D3" : "rgba(255, 255, 255, 0.05)",
               color: canSubmit ? "white" : "rgba(255, 255, 255, 0.2)",
               fontWeight: "bold",
               fontSize: "1.1rem",
@@ -204,7 +204,7 @@ export default function LoginScreen({ onLogin }) {
               cursor: "pointer",
               transition: "color 0.2s"
             }}
-            onMouseOver={(e) => e.target.style.color = "#e156be"}
+            onMouseOver={(e) => e.target.style.color = "#5598D3"}
             onMouseOut={(e) => e.target.style.color = "rgba(255,255,255,0.4)"}
           >
             {mode === "login" ? "Don't have an account? Sign Up" : "Already have an account? Login"}
@@ -221,14 +221,14 @@ export default function LoginScreen({ onLogin }) {
             style={{
               padding: "0.9rem",
               borderRadius: "14px",
-              border: "1px solid rgba(0, 255, 204, 0.3)",
+              border: "1px solid rgba(255, 255, 255, 0.3)",
               backgroundColor: "transparent",
-              color: "#00ffcc",
+              color: "#5598D3",
               fontWeight: "bold",
               cursor: "pointer",
               transition: "all 0.2s"
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = "rgba(0, 255, 204, 0.1)"}
+            onMouseOver={(e) => e.target.style.backgroundColor = "rgba(190, 218, 243, 0.1)"}
             onMouseOut={(e) => e.target.style.backgroundColor = "transparent"}
           >
             Play as Guest
