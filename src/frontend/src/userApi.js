@@ -25,8 +25,7 @@ export async function registerUser(username, password) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
-
-  return readJsonOrThrow(res);
+    return readJsonOrThrow(res);
 }
 
 export async function loginUser(username, password) {

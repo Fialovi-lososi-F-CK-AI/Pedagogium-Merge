@@ -68,7 +68,7 @@ export default function initGame() {
     });
 
     k.scene("main", () => {
-        k.setGravity(3000);
+        k.setGravity(1000);
 
         let isGameOver = false;
         let dropLocked = false;

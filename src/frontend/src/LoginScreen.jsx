@@ -155,6 +155,7 @@ export default function LoginScreen({ onLogin }) {
           )}
 
           <button
+            type="submit"
             disabled={!canSubmit}
             style={{
               marginTop: "0.5rem", padding: "1.1rem", borderRadius: "14px", border: "none",
