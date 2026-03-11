@@ -35,7 +35,7 @@ export default function LoginScreen({ onLogin }) {
     if (!canSubmit) return;
     setMsg("");
 
-    if (username.trim().toLowerCase().startsWith("guest_") && username.trim().toLowerCase().startsWith("Guest_")) {
+    if (username.trim().toLowerCase().startsWith("guest_") && username.trim().startsWith("Guest_")) {
       setMsg("Username cannot start with 'guest_'. or 'Guest_'.");
       return;
     }
