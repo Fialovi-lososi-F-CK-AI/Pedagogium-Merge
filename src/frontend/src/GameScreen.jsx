@@ -11,7 +11,6 @@ const COLORS = {
 };
 
 export default function GameScreen({ user }) {
-  // Stav pro UI
   const [gameOverBox, setGameOverBox] = useState({
     open: false,
     finalScore: 0,
@@ -85,7 +84,6 @@ export default function GameScreen({ user }) {
 
     const timer = setTimeout(startEngine, 100);
 
-    // OPRAVA: handleScore teď správně pracuje s referencí
     const handleScore = (e) => {
       const points = Number(e.detail || 0);
       scoreRef.current += points;
@@ -138,7 +136,6 @@ export default function GameScreen({ user }) {
         }}
       />
 
-      {/* STYLOVANÝ GAME OVER BOX */}
       {gameOverBox.open && (
         <div style={{
           position: "absolute", inset: 0, backgroundColor: "rgba(4, 17, 36, 0.9)",
