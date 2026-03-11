@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller\Admin;
 
 use App\Repository\UtmVisitRepository;
@@ -12,7 +13,7 @@ class UtmAdminController
     public function stats(UtmVisitRepository $repo): JsonResponse
     {
         $data = $repo->createQueryBuilder('u')
-            ->select('u.utmSource, COUNT(u.id) as visits')
+            ->select('u.utmSource, COUNT(u.id) as visits, COUNT(DISTINCT u.ipAddress) as uniqueIps')
             ->groupBy('u.utmSource')
             ->getQuery()
             ->getResult();

@@ -21,14 +21,18 @@ class UtmVisit
     #[ORM\Column(length: 255)]
     private string $utmCampaign;
 
+    #[ORM\Column(length: 45)]
+    private string $ipAddress;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct(string $utmSource = '', string $utmMedium = '', string $utmCampaign = '')
+    public function __construct(string $utmSource = '', string $utmMedium = '', string $utmCampaign = '', string $ipAddress = '')
     {
         $this->utmSource = $utmSource;
         $this->utmMedium = $utmMedium;
         $this->utmCampaign = $utmCampaign;
+        $this->ipAddress = $ipAddress;
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -67,6 +71,17 @@ class UtmVisit
     public function setUtmCampaign(string $utmCampaign): self
     {
         $this->utmCampaign = $utmCampaign;
+        return $this;
+    }
+
+    public function getIpAddress(): string
+    {
+        return $this->ipAddress;
+    }
+
+    public function setIpAddress(string $ipAddress): self
+    {
+        $this->ipAddress = $ipAddress;
         return $this;
     }
 

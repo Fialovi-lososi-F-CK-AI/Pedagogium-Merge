@@ -21,8 +21,10 @@ class UtmApiController
     #[Route('/track', name: 'utm_track', methods: ['POST'])]
     public function track(Request $request): JsonResponse
     {
+        $ip = $request->getClientIp() ?? 'unknown';
+
         $limit = $this->utmTrackLimiter
-            ->create($request->getClientIp() ?? 'anon')
+            ->create($ip)
             ->consume();
 
         if (!$limit->isAccepted()) {
@@ -39,7 +41,7 @@ class UtmApiController
             return new JsonResponse(['error' => 'Invalid UTM parameters'], 400);
         }
 
-        $visit = new UtmVisit($source, $medium, $campaign);
+        $visit = new UtmVisit($source, $medium, $campaign, $ip);
 
         $this->em->persist($visit);
         $this->em->flush();
