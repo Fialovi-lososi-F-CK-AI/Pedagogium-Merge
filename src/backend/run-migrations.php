@@ -11,6 +11,7 @@ use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\MigratorConfiguration;
 
 $databaseUrl = getenv('DATABASE_URL');
+var_dump($databaseUrl);
 
 if (!$databaseUrl) {
     throw new RuntimeException('DATABASE_URL is not set.');
