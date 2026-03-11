@@ -55,6 +55,8 @@ export default function initGame() {
 
     // Ovládání myší / prstem
     let pointerX = k.width() / 2;
+    let activePointerUpHandler = null;
+    let activePointerMoveHandler = null;
 
     const updatePointerFromEvent = (e) => {
         const rect = canvas.getBoundingClientRect();
@@ -73,12 +75,34 @@ export default function initGame() {
         pointerX = relativeX;
     };
 
+    const globalPointerDown = (e) => {
+        updatePointerFromEvent(e);
+    };
+
+    const globalPointerMove = (e) => {
+        updatePointerFromEvent(e);
+        if (activePointerMoveHandler) activePointerMoveHandler(e);
+    };
+
+    const globalPointerUp = (e) => {
+        updatePointerFromEvent(e);
+        if (activePointerUpHandler) activePointerUpHandler(e);
+    };
+
+    canvas.addEventListener("pointerdown", globalPointerDown);
+    canvas.addEventListener("pointermove", globalPointerMove);
+    canvas.addEventListener("pointerup", globalPointerUp);
+    canvas.addEventListener("pointercancel", globalPointerUp);
+
     // DEFINICE SCÉNY
     k.scene("main", () => {
         k.setGravity(1000);
 
         let isGameOver = false;
         let dropLocked = false;
+        let restartLocked = false;
+        let lastDropTime = 0;
+
         const LOSE_LINE = 50;
         const PREVIEW_Y = LOSE_LINE - 22;
         let currentFruit = null;
@@ -179,7 +203,27 @@ export default function initGame() {
             window.dispatchEvent(new CustomEvent("gameOver"));
         }
 
+        const prepareNext = () => {
+            if (isGameOver) return;
+
+            const randomLevel = k.choose([0, 1, 2]);
+            const spawnX = getPreviewX(randomLevel);
+            const spawnY = PREVIEW_Y;
+
+            if (isSpawnBlocked(spawnX, spawnY, randomLevel)) {
+                gameOver();
+                return;
+            }
+
+            currentFruit = spawnFruitAt(spawnX, spawnY, randomLevel, false);
+            dropLocked = false;
+        };
+
         const dropCurrentFruit = () => {
+            const now = Date.now();
+            if (now - lastDropTime < 250) return;
+            lastDropTime = now;
+
             if (isGameOver) return;
             if (dropLocked) return;
 
@@ -198,38 +242,9 @@ export default function initGame() {
             }
         };
 
-        const handlePointerDown = (e) => {
-            updatePointerFromEvent(e);
-        };
-
-        const handlePointerMove = (e) => {
-            updatePointerFromEvent(e);
-        };
-
-        const handlePointerUp = (e) => {
-            updatePointerFromEvent(e);
+        activePointerMoveHandler = () => {};
+        activePointerUpHandler = () => {
             dropCurrentFruit();
-        };
-
-        canvas.addEventListener("pointerdown", handlePointerDown);
-        canvas.addEventListener("pointermove", handlePointerMove);
-        canvas.addEventListener("pointerup", handlePointerUp);
-        canvas.addEventListener("pointercancel", handlePointerUp);
-
-        const prepareNext = () => {
-            if (isGameOver) return;
-
-            const randomLevel = k.choose([0, 1, 2]);
-            const spawnX = getPreviewX(randomLevel);
-            const spawnY = PREVIEW_Y;
-
-            if (isSpawnBlocked(spawnX, spawnY, randomLevel)) {
-                gameOver();
-                return;
-            }
-
-            currentFruit = spawnFruitAt(spawnX, spawnY, randomLevel, false);
-            dropLocked = false;
         };
 
         k.wait(0.2, prepareNext);
@@ -276,6 +291,16 @@ export default function initGame() {
 
             spawnFruitAt(pos.x, pos.y, nextLevel, true);
             window.dispatchEvent(new CustomEvent("addScore", { detail: FRUITS[nextLevel].score }));
+        });
+
+        k.onMousePress(() => {
+            if (!isGameOver) return;
+            if (restartLocked) return;
+
+            restartLocked = true;
+            activePointerUpHandler = null;
+            activePointerMoveHandler = null;
+            k.go("main");
         });
     });
 

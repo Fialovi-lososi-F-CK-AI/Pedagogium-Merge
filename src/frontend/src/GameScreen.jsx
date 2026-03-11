@@ -17,6 +17,7 @@ export default function GameScreen({ user }) {
   const isSavingRef = useRef(false);
   const lastSavedScoreRef = useRef(0);
   const lastSaveAttemptRef = useRef(0);
+  const restartLockedRef = useRef(false);
 
   const bestScoreKey = `bestScore:${user}`;
 
@@ -142,6 +143,8 @@ export default function GameScreen({ user }) {
   }, [user]);
 
   const restartGame = () => {
+    if (restartLockedRef.current) return;
+    restartLockedRef.current = true;
     window.location.reload();
   };
 
