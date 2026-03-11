@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import initGame from "./initGame.js";
+import { trackUTM } from "./utmTracker";
 import { submitScore, submitScoreKeepalive } from "./leaderboardApi";
 
 const COLORS = {
@@ -23,7 +24,7 @@ export default function GameScreen({ user }) {
   const isSavingRef = useRef(false);
   const lastSavedScoreRef = useRef(0);
   const lastSaveAttemptRef = useRef(0);
-  
+
   const bestScoreKey = `bestScore:${user}`;
 
   const getStoredBestScore = () => Number(localStorage.getItem(bestScoreKey) || "0");
@@ -35,16 +36,24 @@ export default function GameScreen({ user }) {
     const now = Date.now();
     const isNewHighScore = currentScore > previousBest;
 
-    if (!user || user.startsWith("Guest_") || currentScore <= 0) {
-      return { saved: false, isNewHighScore };
-    }
-
-    if (!isNewHighScore && currentScore <= lastSavedScoreRef.current) {
+    if (!user || user.startsWith("Guest_")) {
       return { saved: false, isNewHighScore: false };
     }
 
-    if (isSavingRef.current || (now - lastSaveAttemptRef.current < 1200)) {
-      return { saved: false, isNewHighScore };
+    if (currentScore <= 0) {
+      return { saved: false, isNewHighScore: false };
+    }
+
+    if (!isNewHighScore) {
+      return { saved: false, isNewHighScore: false };
+    }
+
+    if (currentScore <= lastSavedScoreRef.current) {
+      return { saved: true, isNewHighScore: true };
+    }
+
+    if (isSavingRef.current || now - lastSaveAttemptRef.current < 1200) {
+      return { saved: false, isNewHighScore: true };
     }
 
     lastSaveAttemptRef.current = now;
@@ -56,12 +65,14 @@ export default function GameScreen({ user }) {
       } else {
         await submitScore(user, currentScore);
       }
+
       lastSavedScoreRef.current = currentScore;
       setStoredBestScore(currentScore);
+
       return { saved: true, isNewHighScore: true };
     } catch (err) {
       console.warn("Score save failed:", err);
-      return { saved: false, isNewHighScore };
+      return { saved: false, isNewHighScore: true };
     } finally {
       isSavingRef.current = false;
     }
@@ -74,7 +85,7 @@ export default function GameScreen({ user }) {
       const canvas = document.getElementById("game-canvas");
       if (canvas) {
         try {
-          initGame(); 
+          initGame();
           hasInitialized.current = true;
         } catch (err) {
           console.error("Game engine failed to start:", err);
@@ -83,6 +94,8 @@ export default function GameScreen({ user }) {
     };
 
     const timer = setTimeout(startEngine, 100);
+
+    trackUTM();
 
     const handleScore = (e) => {
       const points = Number(e.detail || 0);
@@ -103,10 +116,17 @@ export default function GameScreen({ user }) {
       void saveScoreIfNeeded({ useKeepalive: true });
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        void saveScoreIfNeeded({ useKeepalive: true });
+      }
+    };
+
     window.addEventListener("addScore", handleScore);
     window.addEventListener("gameOver", handleGameOver);
     window.addEventListener("pagehide", handlePageHide);
     window.addEventListener("beforeunload", handlePageHide);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearTimeout(timer);
@@ -114,6 +134,7 @@ export default function GameScreen({ user }) {
       window.removeEventListener("gameOver", handleGameOver);
       window.removeEventListener("pagehide", handlePageHide);
       window.removeEventListener("beforeunload", handlePageHide);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       hasInitialized.current = false;
     };
   }, [user]);
@@ -127,8 +148,8 @@ export default function GameScreen({ user }) {
       width: "100%", height: "100%", display: "flex", justifyContent: "center",
       alignItems: "center", position: "relative", backgroundColor: "transparent"
     }}>
-      <canvas 
-        id="game-canvas" 
+      <canvas
+        id="game-canvas"
         style={{
           width: "100%", maxWidth: "440px", aspectRatio: "5/7",
           borderRadius: "20px", boxShadow: `0 0 40px ${COLORS.void}`,
@@ -142,13 +163,13 @@ export default function GameScreen({ user }) {
           backdropFilter: "blur(8px)", display: "flex", flexDirection: "column",
           justifyContent: "center", alignItems: "center", zIndex: 200, borderRadius: "20px"
         }}>
-          <h1 style={{ 
+          <h1 style={{
             color: COLORS.accent, fontSize: "2.5rem", marginBottom: "0.5rem",
-            textShadow: `0 0 20px ${COLORS.primary}` 
+            textShadow: `0 0 20px ${COLORS.primary}`
           }}>
             GAME OVER
           </h1>
-          
+
           <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
             <p style={{ color: COLORS.highlight, fontSize: "1.1rem", margin: 0, opacity: 0.8 }}>FINAL SCORE</p>
             <p style={{ color: "white", fontSize: "3.5rem", fontWeight: "bold", margin: 0 }}>
@@ -161,7 +182,7 @@ export default function GameScreen({ user }) {
             )}
           </div>
 
-          <button 
+          <button
             onClick={restartGame}
             style={{
               padding: "1.2rem 3rem", fontSize: "1.2rem", fontWeight: "bold",
@@ -176,9 +197,9 @@ export default function GameScreen({ user }) {
           </button>
 
           {!gameOverBox.saved && user && !user.startsWith("Guest_") && (
-             <p style={{ color: COLORS.highlight, fontSize: "0.7rem", marginTop: "1.5rem", opacity: 0.5 }}>
-               Score sync pending...
-             </p>
+            <p style={{ color: COLORS.highlight, fontSize: "0.7rem", marginTop: "1.5rem", opacity: 0.5 }}>
+              Score sync pending...
+            </p>
           )}
         </div>
       )}
