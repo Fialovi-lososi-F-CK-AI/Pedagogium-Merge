@@ -49,7 +49,7 @@ function AppLayout({ user, logout }) {
       <header style={{
         height: "56px",
         padding: "0 1rem",
-        backgroundColor: "rgba(20, 20, 35, 0.95)",
+        backgroundColor: "#041124d9",
         color: "white",
         display: "flex",
         alignItems: "center",
@@ -109,7 +109,7 @@ function AppLayout({ user, logout }) {
 
       <div style={{
         position: "fixed", top: 0, left: isSidebarOpen ? "0" : "-110%", 
-        width: "280px", height: "100vh", backgroundColor: "#161625", zIndex: 1200,
+        width: "280px", height: "100vh", backgroundColor: "#041124d9", zIndex: 1200,
         transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s", 
         visibility: isSidebarOpen ? "visible" : "hidden",
         display: "flex", flexDirection: "column", padding: "1.5rem 1rem",
@@ -149,7 +149,7 @@ function AppLayout({ user, logout }) {
             border: "1px solid #2674BC", backgroundColor: isActive ? "rgba(38, 116, 188, 0.2)" : "transparent",
             transition: "0.2s"
           })}>
-            🏆 Leaderboard
+            Leaderboard👑
           </NavLink>
           
           <button 

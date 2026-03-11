@@ -1,6 +1,14 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { registerUser, loginUser } from "./userApi";
 
+const COLORS = {
+  void: "#041124",
+  deep: "#0A3976",
+  primary: "#2674BC",
+  accent: "#5598D3",
+  highlight: "#BEDAF3"
+};
+
 export default function LoginScreen({ onLogin }) {
   const [mode, setMode] = useState("login");
   const [username, setUsername] = useState("");
@@ -13,13 +21,9 @@ export default function LoginScreen({ onLogin }) {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
     document.body.style.overflow = "hidden";
-    document.body.style.backgroundColor = "#1a1a2e";
-    return () => {
-      document.body.style.overflow = "auto";
-    };
+    document.body.style.backgroundColor = COLORS.void;
+    return () => { document.body.style.overflow = "auto"; };
   }, []);
-
-  const isValidUsername = (value) => /^[a-zA-Z0-9_]{3,20}$/.test(value);
 
   const canSubmit = useMemo(() => {
     return username.trim().length > 0 && password.length >= 6 && !isLoading;
@@ -28,40 +32,25 @@ export default function LoginScreen({ onLogin }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!canSubmit) return;
-
-    const trimmedUsername = username.trim();
-
-    if (!isValidUsername(trimmedUsername)) {
-      setMsg("Username must be 3-20 characters and only letters, numbers or _.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setMsg("Password must have at least 6 characters.");
-      return;
-    }
-
     setMsg("");
     setIsLoading(true);
 
     try {
       if (mode === "signup") {
-        await registerUser(trimmedUsername, password);
-        localStorage.setItem("authUser", trimmedUsername);
-        onLogin(trimmedUsername);
+        await registerUser(username.trim(), password);
+        localStorage.setItem("authUser", username.trim());
+        onLogin(username.trim());
       } else {
-        const data = await loginUser(trimmedUsername, password);
-
+        const data = await loginUser(username.trim(), password);
         if (!data?.success) {
-          setMsg(data?.message || "Invalid username or password.");
+          setMsg(data?.message || "Invalid credentials.");
           return;
         }
-
-        localStorage.setItem("authUser", data.username || trimmedUsername);
-        onLogin(data.username || trimmedUsername);
+        localStorage.setItem("authUser", data.username || username.trim());
+        onLogin(data.username || username.trim());
       }
     } catch (err) {
-      setMsg(err.message || "Server connection error");
+      setMsg(err.message || "Connection error");
     } finally {
       setIsLoading(false);
     }
@@ -69,106 +58,98 @@ export default function LoginScreen({ onLogin }) {
 
   const loginAsGuest = () => {
     if (guestLocked) return;
-
     setGuestLocked(true);
-
     const guestUser = "Guest_" + Math.floor(Math.random() * 1000);
     localStorage.setItem("authUser", guestUser);
     onLogin(guestUser);
-
     setTimeout(() => setGuestLocked(false), 1200);
   };
 
   return (
     <div style={{
-      height: "100dvh",
-      width: "100%",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      background: "radial-gradient(circle at center, #1e3c72 0%, #1a1a2e 100%)",
-      padding: "1rem",
-      boxSizing: "border-box",
-      position: "fixed",
-      top: 0,
-      left: 0
+      height: "100dvh", width: "100%", display: "flex", justifyContent: "center", alignItems: "center",
+      background: `radial-gradient(circle at center, ${COLORS.deep} 0%, ${COLORS.void} 100%)`,
+      padding: "1rem", boxSizing: "border-box", position: "fixed", top: 0, left: 0
     }}>
       <div style={{
-        backgroundColor: "rgba(30, 30, 47, 0.95)",
-        backdropFilter: "blur(20px)",
-        borderRadius: "28px",
-        boxShadow: "0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(225, 86, 190, 0.1)",
-        border: "1px solid rgba(255, 255, 255, 0.1)",
-        padding: "2.5rem",
-        width: "100%",
-        maxWidth: "400px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        boxSizing: "border-box"
+        backgroundColor: "#041124d9", backdropFilter: "blur(20px)", borderRadius: "28px",
+        boxShadow: `0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(38, 116, 188, 0.2)`,
+        border: `1px solid ${COLORS.primary}44`, padding: "2rem", width: "100%", maxWidth: "400px",
+        display: "flex", flexDirection: "column", alignItems: "center", boxSizing: "border-box"
       }}>
-        <h1 style={{ 
-          margin: "0 0 0.5rem 0", 
-          color: "#5598D3", 
-          fontSize: "2.2rem",
-          textAlign: "center",
-          textShadow: "0 0 15px rgba(225, 86, 190, 0.3)",
-          letterSpacing: "-1px"
-        }}>
-          {mode === "signup" ? "Create Account" : "Login"}
+        
+        <h1 style={{ color: COLORS.accent, fontSize: "1.8rem", margin: "0 0 0.5rem 0", textShadow: `0 0 10px ${COLORS.primary}66` }}>
+            PEDAGOGIUM MERGE
         </h1>
-        <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: "2rem", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "2px" }}>
-          Pedagogium Merge
-        </p>
+
+        <div style={{
+          display: "flex",
+          width: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.3)",
+          borderRadius: "14px",
+          padding: "4px",
+          marginBottom: "1.5rem",
+          border: `1px solid ${COLORS.primary}22`
+        }}>
+          <button
+            onClick={() => { setMode("login"); setMsg(""); }}
+            style={{
+              flex: 1,
+              padding: "0.8rem",
+              borderRadius: "10px",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: "bold",
+              transition: "all 0.3s ease",
+              backgroundColor: mode === "login" ? COLORS.primary : "transparent",
+              color: mode === "login" ? "white" : COLORS.accent,
+              boxShadow: mode === "login" ? `0 4px 15px ${COLORS.void}` : "none",
+            }}
+          >
+            LOGIN
+          </button>
+          <button
+            onClick={() => { setMode("signup"); setMsg(""); }}
+            style={{
+              flex: 1,
+              padding: "0.8rem",
+              borderRadius: "10px",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: "bold",
+              transition: "all 0.3s ease",
+              backgroundColor: mode === "signup" ? COLORS.primary : "transparent",
+              color: mode === "signup" ? "white" : COLORS.accent,
+              boxShadow: mode === "signup" ? `0 4px 15px ${COLORS.void}` : "none",
+            }}
+          >
+            SIGN UP
+          </button>
+        </div>
 
         <form onSubmit={submit} style={{ width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <input
-            autoFocus
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             style={{
-              padding: "1.1rem",
-              borderRadius: "14px",
-              border: "1px solid rgba(255,255,255,0.1)",
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
-              color: "white",
-              fontSize: "1rem",
-              outline: "none",
-              boxSizing: "border-box",
-              transition: "border 0.3s"
+              padding: "1.1rem", borderRadius: "14px", border: `1px solid ${COLORS.primary}33`,
+              backgroundColor: "rgba(0, 0, 0, 0.3)", color: "white", outline: "none"
             }}
           />
-
           <input
             type="password"
-            placeholder="Password (min. 5 chars)"
+            placeholder="Password (min. 6 chars)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             style={{
-              padding: "1.1rem",
-              borderRadius: "14px",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
-              color: "white",
-              fontSize: "1rem",
-              outline: "none",
-              boxSizing: "border-box"
+              padding: "1.1rem", borderRadius: "14px", border: `1px solid ${COLORS.primary}33`,
+              backgroundColor: "rgba(0, 0, 0, 0.3)", color: "white", outline: "none"
             }}
           />
 
-          {/* ERROR MESSAGE - Displayed here if username is taken or other issues occur */}
           {msg && (
-            <div style={{
-              backgroundColor: "rgba(255, 76, 76, 0.15)",
-              color: "#ff4c4c",
-              padding: "0.8rem",
-              borderRadius: "10px",
-              fontSize: "0.85rem",
-              textAlign: "center",
-              border: "1px solid rgba(255, 76, 76, 0.3)",
-              marginTop: "0.5rem"
-            }}>
+            <div style={{ color: "#ff4c4c", fontSize: "0.85rem", textAlign: "center" }}>
               ⚠️ {msg}
             </div>
           )}
@@ -176,64 +157,35 @@ export default function LoginScreen({ onLogin }) {
           <button
             disabled={!canSubmit}
             style={{
-              marginTop: "0.5rem",
-              padding: "1.1rem",
-              borderRadius: "14px",
-              border: "none",
-              backgroundColor: canSubmit ? "#5598D3" : "rgba(255, 255, 255, 0.05)",
-              color: canSubmit ? "white" : "rgba(255, 255, 255, 0.2)",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              cursor: canSubmit ? "pointer" : "not-allowed",
-              transition: "all 0.3s ease",
-              boxShadow: canSubmit ? "0 10px 20px rgba(225, 86, 190, 0.3)" : "none"
+              marginTop: "0.5rem", padding: "1.1rem", borderRadius: "14px", border: "none",
+              backgroundColor: canSubmit ? COLORS.accent : "rgba(255, 255, 255, 0.05)",
+              color: canSubmit ? COLORS.void : "rgba(255, 255, 255, 0.2)",
+              fontWeight: "bold", fontSize: "1rem", cursor: canSubmit ? "pointer" : "not-allowed",
+              transition: "all 0.3s ease", textTransform: "uppercase"
             }}
           >
-            {isLoading ? "Processing..." : (mode === "signup" ? "Register" : "Enter Game")}
+            {isLoading ? "Wait..." : (mode === "signup" ? "Create Account" : "Enter Game")}
           </button>
         </form>
 
-        <div style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "1.2rem", width: "100%" }}>
-          <button
-            onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMsg(""); }}
-            style={{
-              background: "none",
-              border: "none",
-              color: "rgba(255,255,255,0.4)",
-              fontSize: "0.9rem",
-              cursor: "pointer",
-              transition: "color 0.2s"
-            }}
-            onMouseOver={(e) => e.target.style.color = "#5598D3"}
-            onMouseOut={(e) => e.target.style.color = "rgba(255,255,255,0.4)"}
-          >
-            {mode === "login" ? "Don't have an account? Sign Up" : "Already have an account? Login"}
-          </button>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
-            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
-            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem", fontWeight: "bold" }}>OR</span>
-            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
-          </div>
-
-          <button
-            onClick={loginAsGuest}
-            style={{
-              padding: "0.9rem",
-              borderRadius: "14px",
-              border: "1px solid rgba(255, 255, 255, 0.3)",
-              backgroundColor: "transparent",
-              color: "#5598D3",
-              fontWeight: "bold",
-              cursor: "pointer",
-              transition: "all 0.2s"
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = "rgba(190, 218, 243, 0.1)"}
-            onMouseOut={(e) => e.target.style.backgroundColor = "transparent"}
-          >
-            Play as Guest
-          </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%", margin: "1.5rem 0" }}>
+          <div style={{ flex: 1, height: "1px", background: `${COLORS.primary}33` }}></div>
+          <span style={{ color: COLORS.primary, fontSize: "0.7rem", fontWeight: "bold", opacity: 0.5 }}>OR</span>
+          <div style={{ flex: 1, height: "1px", background: `${COLORS.primary}33` }}></div>
         </div>
+
+        <button
+          onClick={loginAsGuest}
+          style={{
+            width: "100%", padding: "0.9rem", borderRadius: "14px", border: `1px solid ${COLORS.primary}66`,
+            backgroundColor: "transparent", color: COLORS.highlight, fontWeight: "bold",
+            cursor: "pointer", transition: "all 0.2s", textTransform: "uppercase"
+          }}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${COLORS.primary}22`}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+        >
+          Play as Guest
+        </button>
       </div>
     </div>
   );
