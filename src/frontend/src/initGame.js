@@ -32,6 +32,7 @@ export default function initGame() {
     k.loadSprite("studenkova", "/studenkova.png");
     k.loadSprite("meitnerova", "/meitnerova.png");
     k.loadSprite("vana", "/vana.png");
+    k.loadSprite("papula", "/papula.png");
     k.loadSprite("adamek", "/adamek.png");
     k.loadSprite("prochazka", "/prochazka.png");
     k.loadSprite("masopust", "/masopust.png");
@@ -43,7 +44,7 @@ export default function initGame() {
         { radius: 32, score: 6, sprite: "studenkova" },
         { radius: 40, score: 10, sprite: "meitnerova" },
         { radius: 50, score: 15, sprite: "vana" },
-        { radius: 62, score: 20, sprite: "losos" },
+        { radius: 62, score: 20, sprite: "papula" },
         { radius: 75, score: 28, sprite: "adamek" },
         { radius: 90, score: 36, sprite: "prochazka" },
         { radius: 105, score: 45, sprite: "masopust" },
