@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import initGame from "./initGame.js";
 import { trackUTM } from "./utmTracker";
-import { submitScore, submitScoreKeepalive } from "./leaderboardApi";
+import { startGameSession, submitScore, submitScoreKeepalive } from "./leaderboardApi";
 
 const COLORS = {
   void: "#041124",
@@ -24,6 +24,7 @@ export default function GameScreen({ user }) {
   const isSavingRef = useRef(false);
   const lastSavedScoreRef = useRef(0);
   const lastSaveAttemptRef = useRef(0);
+  const gameTokenRef = useRef("");
 
   const bestScoreKey = `bestScore:${user}`;
 
@@ -37,6 +38,10 @@ export default function GameScreen({ user }) {
     const isNewHighScore = currentScore > previousBest;
 
     if (!user || user.startsWith("Guest_")) {
+      return { saved: false, isNewHighScore: false };
+    }
+
+    if (!gameTokenRef.current) {
       return { saved: false, isNewHighScore: false };
     }
 
@@ -61,9 +66,9 @@ export default function GameScreen({ user }) {
 
     try {
       if (useKeepalive) {
-        await submitScoreKeepalive(user, currentScore);
+        await submitScoreKeepalive(gameTokenRef.current, currentScore);
       } else {
-        await submitScore(user, currentScore);
+        await submitScore(gameTokenRef.current, currentScore);
       }
 
       lastSavedScoreRef.current = currentScore;
@@ -81,6 +86,17 @@ export default function GameScreen({ user }) {
   useEffect(() => {
     if (hasInitialized.current) return;
 
+    const bootstrapSession = async () => {
+      if (!user || user.startsWith("Guest_")) return;
+
+      try {
+        const data = await startGameSession();
+        gameTokenRef.current = data?.gameToken || "";
+      } catch (err) {
+        console.warn("Game session start failed:", err);
+      }
+    };
+
     const startEngine = () => {
       const canvas = document.getElementById("game-canvas");
       if (canvas) {
@@ -96,6 +112,7 @@ export default function GameScreen({ user }) {
     const timer = setTimeout(startEngine, 100);
 
     trackUTM();
+    bootstrapSession();
 
     const handleScore = (e) => {
       const points = Number(e.detail || 0);

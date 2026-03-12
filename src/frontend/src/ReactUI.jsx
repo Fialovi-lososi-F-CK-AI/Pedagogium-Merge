@@ -3,6 +3,7 @@ import { BrowserRouter as Router, NavLink, useLocation } from "react-router-dom"
 import LoginScreen from "./LoginScreen";
 import GameScreen from "./GameScreen";
 import LeaderboardPage from "./LeaderboardPage";
+import { fetchMe, logoutUser } from "./userApi";
 
 function AppLayout({ user, logout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -45,7 +46,6 @@ function AppLayout({ user, logout }) {
       overflow: "hidden",
       position: "relative"
     }}>
-      
       <header style={{
         height: "56px",
         padding: "0 1rem",
@@ -57,10 +57,10 @@ function AppLayout({ user, logout }) {
         borderBottom: "1px solid #2674BC",
         position: "relative"
       }}>
-        <button 
-          onClick={toggleSidebar} 
-          style={{ 
-            background: "none", border: "none", color: "#5598D3", 
+        <button
+          onClick={toggleSidebar}
+          style={{
+            background: "none", border: "none", color: "#5598D3",
             fontSize: "1.5rem", cursor: "pointer", outline: "none",
             zIndex: 10
           }}
@@ -68,14 +68,14 @@ function AppLayout({ user, logout }) {
           ☰
         </button>
 
-        <div style={{ 
+        <div style={{
           position: "absolute",
           left: "50%",
           top: "50%",
           transform: "translate(-50%, -50%)",
-          backgroundColor: "rgba(0,0,0,0.5)", 
+          backgroundColor: "rgba(0,0,0,0.5)",
           padding: isMobile ? "4px 20px" : "4px 35px",
-          borderRadius: "15px", 
+          borderRadius: "15px",
           border: "1px solid rgba(85, 152, 211, 0.4)",
           minWidth: isMobile ? "100px" : "130px",
           display: "flex",
@@ -85,9 +85,9 @@ function AppLayout({ user, logout }) {
           zIndex: 5
         }}>
           <div style={{ fontSize: "0.55rem", color: "#5598D3", letterSpacing: "1px", fontWeight: "bold" }}>SCORE</div>
-          <div style={{ 
-            fontSize: isMobile ? "1.2rem" : "1.35rem", 
-            fontWeight: "bold", color: "#BEDAF3", fontFamily: "monospace", letterSpacing: "2px" 
+          <div style={{
+            fontSize: isMobile ? "1.2rem" : "1.35rem",
+            fontWeight: "bold", color: "#BEDAF3", fontFamily: "monospace", letterSpacing: "2px"
           }}>
             {score.toLocaleString()}
           </div>
@@ -98,24 +98,23 @@ function AppLayout({ user, logout }) {
         </div>
       </header>
 
-      <div 
-        onClick={closeSidebar} 
+      <div
+        onClick={closeSidebar}
         style={{
           position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", zIndex: 1100,
           opacity: isSidebarOpen ? 1 : 0, pointerEvents: isSidebarOpen ? "auto" : "none",
           backdropFilter: "blur(3px)", transition: "opacity 0.3s ease"
-        }} 
+        }}
       />
 
       <div style={{
-        position: "fixed", top: 0, left: isSidebarOpen ? "0" : "-110%", 
+        position: "fixed", top: 0, left: isSidebarOpen ? "0" : "-110%",
         width: "280px", height: "100vh", backgroundColor: "#041124d9", zIndex: 1200,
-        transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s", 
+        transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s",
         visibility: isSidebarOpen ? "visible" : "hidden",
         display: "flex", flexDirection: "column", padding: "1.5rem 1rem",
         boxShadow: isSidebarOpen ? "10px 0 30px rgba(0,0,0,0.5)" : "none"
       }}>
-        
         <div style={{
           display: "flex", alignItems: "center", gap: "15px",
           padding: "1rem", backgroundColor: "rgba(38, 116, 188, 0.1)",
@@ -124,7 +123,7 @@ function AppLayout({ user, logout }) {
         }}>
           <div style={{
             width: "45px", height: "45px", borderRadius: "50%",
-            backgroundColor: "#2674BC", display: "flex", 
+            backgroundColor: "#2674BC", display: "flex",
             justifyContent: "center", alignItems: "center", fontSize: "1.5rem"
           }}>
             🐧
@@ -137,31 +136,31 @@ function AppLayout({ user, logout }) {
 
         <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <NavLink to="/" onClick={closeSidebar} style={({ isActive }) => ({
-            color: "white", textDecoration: "none", padding: "14px", borderRadius: "10px", 
+            color: "white", textDecoration: "none", padding: "14px", borderRadius: "10px",
             border: "1px solid #2674BC", backgroundColor: isActive ? "rgba(38, 116, 188, 0.2)" : "transparent",
             transition: "0.2s"
           })}>
             Play Game
           </NavLink>
-          
+
           <NavLink to="/leaderboard" onClick={closeSidebar} style={({ isActive }) => ({
-            color: "white", textDecoration: "none", padding: "14px", borderRadius: "10px", 
+            color: "white", textDecoration: "none", padding: "14px", borderRadius: "10px",
             border: "1px solid #2674BC", backgroundColor: isActive ? "rgba(38, 116, 188, 0.2)" : "transparent",
             transition: "0.2s"
           })}>
             Leaderboard👑
           </NavLink>
-          
-          <button 
-            onClick={logout} 
-            style={{ 
-              marginTop: "10px", 
-              padding: "14px", 
-              borderRadius: "10px", 
-              backgroundColor: "rgba(255, 76, 76, 0.25)", 
-              color: "#ff6666", 
-              border: "1px solid #ff4c4c", 
-              cursor: "pointer", 
+
+          <button
+            onClick={logout}
+            style={{
+              marginTop: "10px",
+              padding: "14px",
+              borderRadius: "10px",
+              backgroundColor: "rgba(255, 76, 76, 0.25)",
+              color: "#ff6666",
+              border: "1px solid #ff4c4c",
+              cursor: "pointer",
               fontWeight: "bold",
               textTransform: "uppercase",
               letterSpacing: "1px",
@@ -176,42 +175,73 @@ function AppLayout({ user, logout }) {
       </div>
 
       <main style={{ flex: 1, width: "100%", height: "100%", position: "relative" }}>
-          <div style={{ 
-            display: isLeaderboardActive ? "none" : "flex", 
-            width: "100%", 
-            height: "100%",
-            flexDirection: "column"
-          }}>
-            <GameScreen user={user} />
-          </div>
+        <div style={{
+          display: isLeaderboardActive ? "none" : "flex",
+          width: "100%",
+          height: "100%",
+          flexDirection: "column"
+        }}>
+          <GameScreen user={user} />
+        </div>
 
-          {isLeaderboardActive && (
-            <div style={{ 
-              position: "absolute", 
-              inset: 0, 
-              overflowY: "auto", 
-              padding: "1rem",
-              zIndex: 10,
-              background: "radial-gradient(circle at center, #1e3c72 0%, #041124 100%)"
-            }}>
-              <LeaderboardPage />
-            </div>
-          )}
+        {isLeaderboardActive && (
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            overflowY: "auto",
+            padding: "1rem",
+            zIndex: 10,
+            background: "radial-gradient(circle at center, #1e3c72 0%, #041124 100%)"
+          }}>
+            <LeaderboardPage />
+          </div>
+        )}
       </main>
     </div>
   );
 }
 
 export default function ReactUI() {
-  const [user, setUser] = useState(localStorage.getItem("authUser") || "");
+  const [user, setUser] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const logout = () => { 
-    localStorage.removeItem("authUser"); 
-    setUser(""); 
-    window.location.reload(); 
+  useEffect(() => {
+    const boot = async () => {
+      try {
+        const data = await fetchMe();
+        if (data?.authenticated && data?.username) {
+          setUser(data.username);
+          localStorage.setItem("authUser", data.username);
+        } else {
+          localStorage.removeItem("authUser");
+        }
+      } catch {
+        localStorage.removeItem("authUser");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    boot();
+  }, []);
+
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch {}
+
+    localStorage.removeItem("authUser");
+    setUser("");
+    window.location.reload();
   };
 
-  if (!user) return <LoginScreen onLogin={setUser} />;
+  if (loading) {
+    return null;
+  }
+
+  if (!user) {
+    return <LoginScreen onLogin={setUser} />;
+  }
 
   return (
     <Router>

@@ -40,4 +40,24 @@ class UserService
 
         return $this->passwordService->verify($password, $user->getPassword());
     }
+
+    public function getValidUser(string $username, string $password): ?User
+    {
+        $user = $this->repo->findOneBy(['username' => $username]);
+
+        if (!$user instanceof User) {
+            return null;
+        }
+
+        if (!$this->passwordService->verify($password, $user->getPassword())) {
+            return null;
+        }
+
+        return $user;
+    }
+
+    public function findById(int $id): ?User
+    {
+        return $this->repo->find($id);
+    }
 }

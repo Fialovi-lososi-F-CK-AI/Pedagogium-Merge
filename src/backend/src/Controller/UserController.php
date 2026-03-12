@@ -22,11 +22,15 @@ class UserController
     {
         $data = TypeCast::toArray(json_decode($request->getContent(), true));
 
-        $username = TypeCast::toString($data['username'] ?? '');
+        $username = trim(TypeCast::toString($data['username'] ?? ''));
         $password = TypeCast::toString($data['password'] ?? '');
 
         if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
             return new JsonResponse(['error' => 'Invalid username format'], 400);
+        }
+
+        if (str_starts_with(strtolower($username), 'guest_')) {
+            return new JsonResponse(['error' => 'Guest_ prefix is reserved'], 400);
         }
 
         if (strlen($password) < 6) {
@@ -55,7 +59,7 @@ class UserController
 
         $data = TypeCast::toArray(json_decode($request->getContent(), true));
 
-        $username = TypeCast::toString($data['username'] ?? '');
+        $username = trim(TypeCast::toString($data['username'] ?? ''));
         $password = TypeCast::toString($data['password'] ?? '');
 
         if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
@@ -66,19 +70,48 @@ class UserController
             return new JsonResponse(['error' => 'Invalid password'], 400);
         }
 
-        $isValid = $this->userService->checkUser($username, $password);
+        $user = $this->userService->getValidUser($username, $password);
 
-        if (!$isValid) {
+        if (!$user) {
             return new JsonResponse([
                 'success' => false,
                 'message' => 'Invalid username or password'
             ], 401);
         }
 
+        $session = $request->getSession();
+        $session->migrate(true);
+        $session->set('user_id', $user->getId());
+        $session->set('username', $user->getUsername());
+
         return new JsonResponse([
             'success' => true,
             'message' => 'Login successful',
+            'username' => $user->getUsername()
+        ]);
+    }
+
+    #[Route('/me', name: 'user_me', methods: ['GET'])]
+    public function me(Request $request): JsonResponse
+    {
+        $userId = $request->getSession()->get('user_id');
+        $username = $request->getSession()->get('username');
+
+        if (!$userId || !$username) {
+            return new JsonResponse(['authenticated' => false], 401);
+        }
+
+        return new JsonResponse([
+            'authenticated' => true,
             'username' => $username
         ]);
+    }
+
+    #[Route('/logout', name: 'user_logout', methods: ['POST'])]
+    public function logout(Request $request): JsonResponse
+    {
+        $request->getSession()->invalidate();
+
+        return new JsonResponse(['status' => 'ok']);
     }
 }

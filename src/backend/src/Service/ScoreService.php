@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Service;
 
 use App\Entity\Score;
+use App\Entity\User;
 use App\Repository\ScoreRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,6 +24,12 @@ class ScoreService
             return ['error' => 'User not found'];
         }
 
+        return $this->saveHighscoreForUser($user, $score);
+    }
+
+    /** @return array{status: string}|array{error: string} */
+    public function saveHighscoreForUser(User $user, int $score): array
+    {
         $existingScore = $this->scoreRepo->findOneBy(['user' => $user]);
 
         if ($existingScore) {
