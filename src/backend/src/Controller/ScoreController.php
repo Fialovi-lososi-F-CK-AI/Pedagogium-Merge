@@ -20,24 +20,33 @@ class ScoreController
     #[Route('/submit', name: 'score_submit', methods: ['POST'])]
     public function submit(Request $request): JsonResponse
     {
+        $ip = $request->getClientIp() ?? 'anon';
+
         $limit = $this->scoreSubmitLimiter
-            ->create($request->getClientIp() ?? 'anon')
+            ->create($ip)
             ->consume();
 
         if (!$limit->isAccepted()) {
             return new JsonResponse(['error' => 'Too many requests'], 429);
         }
 
-        $data = TypeCast::toArray(json_decode($request->getContent(), true));
+        $decoded = json_decode($request->getContent(), true);
+
+        if (!is_array($decoded)) {
+            return new JsonResponse(['error' => 'Invalid JSON'], 400);
+        }
+
+        /** @var array<string, mixed> $data */
+        $data = $decoded;
 
         $username = TypeCast::toString($data['username'] ?? '');
-        $score    = TypeCast::toInt($data['score'] ?? 0);
+        $score = TypeCast::toInt($data['score'] ?? 0);
 
         if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
             return new JsonResponse(['error' => 'Invalid username format'], 400);
         }
 
-        if ($score <= 0) {
+        if ($score <= 0 || $score > 1000000) {
             return new JsonResponse(['error' => 'Invalid score'], 400);
         }
 
@@ -59,8 +68,3 @@ class ScoreController
         return new JsonResponse($output);
     }
 }
-
-
-// :D
-// D:
-// :/

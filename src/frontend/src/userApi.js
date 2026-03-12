@@ -23,16 +23,38 @@ export async function registerUser(username, password) {
   const res = await fetch(`${API_BASE}/user/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ username, password }),
   });
-    return readJsonOrThrow(res);
+
+  return readJsonOrThrow(res);
 }
 
 export async function loginUser(username, password) {
   const res = await fetch(`${API_BASE}/user/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ username, password }),
+  });
+
+  return readJsonOrThrow(res);
+}
+
+export async function fetchMe() {
+  const res = await fetch(`${API_BASE}/user/me`, {
+    headers: { Accept: "application/json" },
+    credentials: "include",
+  });
+
+  return readJsonOrThrow(res);
+}
+
+export async function logoutUser() {
+  const res = await fetch(`${API_BASE}/user/logout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
   });
 
   return readJsonOrThrow(res);

@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { fetchTop5 } from "./leaderboardApi";
+import { fetchTop5, submitScore, startGameSession } from "./leaderboardApi";
 
 export default function LeaderboardPage() {
   const [top5, setTop5] = useState([]);
-
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const currentUser = localStorage.getItem("authUser") || "";
-
   const lastRefreshRef = useRef(0);
 
   const loadTop5 = async (force = false) => {
@@ -123,7 +121,7 @@ export default function LeaderboardPage() {
           boxSizing: "border-box",
           fontSize: "0.9rem"
         }}>
-          <b>{currentUser}</b>, your score is outside the Top 5.<br/>
+          <b>{currentUser}</b>, your score is outside the Top 5.<br /> 
           <span style={{ color: "#BEDAF3", fontSize: "0.8rem" }}>Keep merging to climb the ranks!</span>
         </div>
       )}
