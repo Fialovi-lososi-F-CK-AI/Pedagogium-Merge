@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use App\Service\UsernameValidator;
 use App\Utils\TypeCast;
 
 #[Route('/api/user')]
@@ -14,7 +15,8 @@ class UserController
 {
     public function __construct(
         private UserService $userService,
-        private RateLimiterFactory $loginApiLimiter
+        private RateLimiterFactory $loginApiLimiter,
+        private UsernameValidator $usernameValidator
     ) {}
 
     #[Route('/register', name: 'user_register', methods: ['POST'])]
@@ -32,12 +34,10 @@ class UserController
         $username = trim(TypeCast::toString($data['username'] ?? ''));
         $password = TypeCast::toString($data['password'] ?? '');
 
-        if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
-            return new JsonResponse(['error' => 'Invalid username format'], 400);
-        }
+        $usernameError = $this->usernameValidator->validate($username);
 
-        if (str_starts_with(strtolower($username), 'guest_')) {
-            return new JsonResponse(['error' => 'Guest_ prefix is reserved'], 400);
+        if ($usernameError !== null) {
+            return new JsonResponse(['error' => $usernameError], 400);
         }
 
         if (strlen($password) < 6) {

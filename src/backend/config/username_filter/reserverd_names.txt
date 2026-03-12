@@ -1,0 +1,17 @@
+admin
+administrator
+root
+system
+moderator
+mod
+owner
+support
+staff
+developer
+dev
+console
+server
+bot
+guest
+pedagogium
+merge

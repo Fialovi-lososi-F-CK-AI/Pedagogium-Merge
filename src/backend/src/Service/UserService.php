@@ -12,13 +12,34 @@ class UserService
         private UserRepository $repo,
         private PasswordService $passwordService,
         private EntityManagerInterface $em,
+        private UsernameValidator $usernameValidator,
     ) {}
 
     /** @return array{status: string}|array{error: string} */
     public function register(string $username, string $password): array
     {
+        $validationError = $this->usernameValidator->validate($username);
+
+        if ($validationError !== null) {
+            return ['error' => $validationError];
+        }
+
         if ($this->repo->findOneBy(['username' => $username])) {
             return ['error' => 'User exists'];
+        }
+
+        $normalizedIncoming = $this->usernameValidator->normalizeAggressive($username);
+
+        $allUsers = $this->repo->findAll();
+
+        foreach ($allUsers as $existingUser) {
+
+            $normalizedExisting = $this->usernameValidator
+                ->normalizeAggressive($existingUser->getUsername());
+
+            if ($normalizedExisting === $normalizedIncoming) {
+                return ['error' => 'Username is too similar to an existing one'];
+            }
         }
 
         $hashedPassword = $this->passwordService->hash($password);
