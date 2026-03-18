@@ -29,24 +29,40 @@ export async function fetchTop5() {
 }
 
 export async function startGameSession() {
-  const res = await fetch(`${API_BASE}/score/start`, {
+  const res = await fetch("/api/score/start", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
-  return readJsonOrThrow(res);
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Game session start failed");
+  }
+
+  return data;
 }
 
 export async function submitScore(gameToken, score) {
-  const res = await fetch(`${API_BASE}/score/submit`, {
+  const res = await fetch("/api/score/submit", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({ gameToken, score }),
   });
 
-  return readJsonOrThrow(res);
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Score submit failed");
+  }
+
+  return data;
 }
 
 export function submitScoreKeepalive(gameToken, score) {

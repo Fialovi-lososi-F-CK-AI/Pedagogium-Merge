@@ -84,18 +84,27 @@ export default function LoginScreen({ onLogin }) {
   setIsLoading(true);
   try {
     if (mode === "signup") {
-      await registerUser(trimmedUsername, password);
-      localStorage.setItem("authUser", trimmedUsername);
-      onLogin(trimmedUsername);
+      const data = await registerUser(trimmedUsername, password);
+
+    if (!data?.success) {
+      setMsg(data?.error || data?.message || "Registration failed.");
+      return;
+    }
+
+      const finalUsername = data.username || trimmedUsername;
+      localStorage.setItem("authUser", finalUsername);
+      onLogin(finalUsername);
     } else {
       const data = await loginUser(trimmedUsername, password);
-      if (!data?.success) {
-        setMsg(data?.message || "Invalid credentials.");
-        return;
-      }
-      localStorage.setItem("authUser", data.username || trimmedUsername);
-      onLogin(data.username || trimmedUsername);
+
+    if (!data?.success) {
+      setMsg(data?.message || "Invalid credentials.");
+      return;
     }
+    const finalUsername = data.username || trimmedUsername;
+    localStorage.setItem("authUser", finalUsername);
+    onLogin(finalUsername);
+  }
   } catch (err) {
     setMsg(err.message || "Connection error");
   } finally {

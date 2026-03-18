@@ -50,7 +50,24 @@ class UserController
             return new JsonResponse($result, 400);
         }
 
-        return new JsonResponse($result, 201);
+        $user = $this->userService->getValidUser($username, $password);
+
+        if (!$user) {
+            return new JsonResponse([
+                'error' => 'Registration succeeded, but auto-login failed'
+            ], 500);
+        }
+
+        $session = $request->getSession();
+        $session->migrate(true);
+        $session->set('user_id', $user->getId());
+        $session->set('username', $user->getUsername());
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Registration successful',
+            'username' => $user->getUsername()
+        ], 201);
     }
 
     #[Route('/login', name: 'user_login', methods: ['POST'])]
