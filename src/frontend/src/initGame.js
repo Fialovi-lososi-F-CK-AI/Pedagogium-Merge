@@ -21,7 +21,7 @@ export default function initGame() {
         global: false,
         canvas: canvas,
         width: 400,
-        height: 600, 
+        height: 600,
         background: COLORS.void,
         pixelDensity: window.devicePixelRatio || 2,
         texFilter: "linear",
@@ -48,7 +48,7 @@ export default function initGame() {
         { radius: 75, score: 28, sprite: "adamek" },
         { radius: 90, score: 36, sprite: "prochazka" },
         { radius: 105, score: 45, sprite: "masopust" },
-        { radius: 125, score: 100, sprite: "mandik" },
+        { radius: 125, score: 250, sprite: "mandik" },
     ];
 
     const wallWidth = 8;
@@ -73,7 +73,7 @@ export default function initGame() {
 
         let isGameOver = false;
         let dropLocked = false;
-        let nextFruitLevel = k.choose([0, 1, 2]); 
+        let nextFruitLevel = k.choose([0, 1, 2]);
         let currentFruit = null;
 
         const LOSE_LINE = 100;
@@ -135,9 +135,9 @@ export default function initGame() {
             ]);
         };
 
-        addWall(0, k.height() - wallWidth, k.width(), wallWidth); 
-        addWall(0, 0, wallWidth, k.height()); 
-        addWall(k.width() - wallWidth, 0, wallWidth, k.height()); 
+        addWall(0, k.height() - wallWidth, k.width(), wallWidth);
+        addWall(0, 0, wallWidth, k.height());
+        addWall(k.width() - wallWidth, 0, wallWidth, k.height());
 
         k.add([
             k.rect(k.width(), 2),
@@ -166,7 +166,7 @@ export default function initGame() {
             fruit.use(k.sprite(data.sprite));
             fruit.use(k.scale(targetScale));
             fruit.use(k.area({ shape: new k.Circle(k.vec2(0), data.radius / targetScale) }));
-            
+
             fruit.use(k.body({
                 isStatic: !isDropped,
                 friction: 0.5,
@@ -225,9 +225,68 @@ export default function initGame() {
                 f.timeAboveLine = 0;
             }
         });
-            k.onCollide("fruit", "fruit", (a, b) => {
+        k.onCollide("fruit", "fruit", (a, b) => {
             if (a.level !== b.level || a.isMerging || b.isMerging) return;
-            if (a.level >= FRUITS.length - 1) return;
+            if (a.level >= FRUITS.length - 1) {
+                a.isMerging = true;
+                b.isMerging = true;
+
+                const pos = a.pos.lerp(b.pos, 0.5);
+
+                const PARTICLE_COUNT = 80;
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    const size = k.rand(8, 20);
+                    const speed = k.rand(150, 500);
+
+                    k.add([
+                        k.pos(pos),
+                        k.rect(size, size),
+                        k.color(k.choose([
+                            k.rgb(COLORS.highlight),
+                            k.rgb(COLORS.accent),
+                            k.rgb(COLORS.primary),
+                        ])),
+                        k.anchor("center"),
+                        k.rotate(k.rand(0, 360)),
+                        k.move(k.rand(0, 360), speed),
+                        k.opacity(1),
+                        {
+                            rotSpeed: k.rand(-400, 400),
+                            update() {
+                                this.opacity -= k.dt() * 1.2;
+                                this.angle += this.rotSpeed * k.dt();
+                                this.scale = k.vec2(this.opacity * 1.5);
+                                if (this.opacity <= 0) k.destroy(this);
+                            }
+                        }
+                    ]);
+                }
+
+                k.add([
+                    k.circle(200),
+                    k.pos(pos),
+                    k.anchor("center"),
+                    k.color(COLORS.highlight),
+                    k.opacity(0.6),
+                    k.scale(0.2),
+                    {
+                        update() {
+                            this.scale = this.scale.add(k.vec2(k.dt() * 6));
+                            this.opacity -= k.dt() * 1.5;
+                            if (this.opacity <= 0) k.destroy(this);
+                        }
+                    }
+                ]);
+
+                k.shake(20);
+
+                k.timeScale = 0.5;
+                k.wait(0.2, () => k.timeScale = 1);
+                k.destroy(a);
+                k.destroy(b);
+
+                return;
+            }
 
             a.isMerging = true;
             b.isMerging = true;
@@ -235,14 +294,14 @@ export default function initGame() {
             const nextLevel = a.level + 1;
             const pos = a.pos.lerp(b.pos, 0.5);
 
-            const PARTICLE_COUNT = 15; 
+            const PARTICLE_COUNT = 15;
             for (let i = 0; i < PARTICLE_COUNT; i++) {
-                const size = k.rand(6, 12); 
-                const speed = k.rand(80, 250); 
+                const size = k.rand(6, 12);
+                const speed = k.rand(80, 250);
 
                 k.add([
                     k.pos(pos),
-                    k.rect(size, size), 
+                    k.rect(size, size),
                     k.color(k.choose([k.rgb(COLORS.highlight), k.rgb(COLORS.accent)])),
                     k.outline(2, k.rgb(COLORS.primary)),
                     k.opacity(1),
@@ -254,8 +313,8 @@ export default function initGame() {
                     {
                         rotSpeed: k.rand(-200, 200),
                         update() {
-                            this.opacity -= k.dt() * 1.5; 
-                            this.angle += this.rotSpeed * k.dt(); 
+                            this.opacity -= k.dt() * 1.5;
+                            this.angle += this.rotSpeed * k.dt();
                             this.scale = k.vec2(this.opacity);
                             if (this.opacity <= 0) k.destroy(this);
                         }

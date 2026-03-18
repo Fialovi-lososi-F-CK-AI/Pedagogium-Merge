@@ -31,21 +31,53 @@ export default function LoginScreen({ onLogin }) {
   }, [username, password, isLoading]);
 
   const submit = async (e) => {
-    e.preventDefault();
-    if (!canSubmit) return;
-    setMsg("");
+  e.preventDefault();
+  if (!canSubmit) return;
 
+  setMsg("");
   const trimmedUsername = username.trim();
 
-  if (mode === "signup") {
-    if (trimmedUsername.toLowerCase().startsWith("guest_")) {
-      setMsg("Registration failed: 'Guest_' prefix is reserved for guests only.");
-      return;
-    }
+  if (trimmedUsername.length === 0) {
+    setMsg("Enter your username to continue.");
+    return;
   }
 
-  if (mode === "login" && trimmedUsername.toLowerCase().startsWith("guest_")) {
-    setMsg("You cannot log in as 'Guest_'. Use 'Play as Guest' button instead.");
+  if (trimmedUsername.length < 3) {
+    setMsg("Username must be at least 3 characters long.");
+    return;
+  }
+
+  if (trimmedUsername.length > 100) {
+    setMsg("Username is too long (max 100 characters).");
+    return;
+  }
+
+  if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
+    setMsg("Username can only contain letters, numbers, and underscore (_).");
+    return;
+  }
+
+  if (trimmedUsername.toLowerCase().startsWith("guest_")) {
+    if (mode === "signup") {
+      setMsg("The 'Guest_' prefix is reserved for temporary players.");
+    } else {
+      setMsg("Guest accounts cannot log in. Use 'Play as Guest' instead.");
+    }
+    return;
+  }
+
+  if (password.length === 0) {
+    setMsg("Enter your password.");
+    return;
+  }
+
+  if (password.length < 6) {
+    setMsg("Password must contain at least 6 characters.");
+    return;
+  }
+
+  if (password.length > 100) {
+    setMsg("Password is too long (max 100 characters).");
     return;
   }
 
@@ -133,28 +165,6 @@ export default function LoginScreen({ onLogin }) {
         border: `1px solid ${COLORS.primary}44`, padding: "2rem", width: "100%", maxWidth: "400px",
         display: "flex", flexDirection: "column", alignItems: "center", boxSizing: "border-box"
       }}>
-        <div style={{
-          width: "100%",
-          padding: "0.8rem",
-          marginBottom: "1.2rem",
-          borderRadius: "14px",
-          backgroundColor: "rgba(255, 193, 7, 0.1)",
-          border: "1px solid rgba(255, 193, 7, 0.3)",
-          display: "flex",
-          alignItems: "center",
-          gap: "12px"
-        }}>
-          <span style={{ fontSize: "1.2rem" }}></span>
-          <p style={{ 
-            color: "#FFD54F", 
-            fontSize: "0.75rem", 
-            margin: 0, 
-            lineHeight: "1.4",
-            textAlign: "left" 
-          }}>
-            <strong>Browser Tip:</strong> For the best experience, please use <strong>Google Chrome</strong>. Safari may cause display or performance issues.
-          </p>
-        </div>
         <h1 style={{ color: COLORS.accent, fontSize: "1.8rem", margin: "0 0 0.5rem 0", textShadow: `0 0 10px ${COLORS.primary}66` }}>
             PEDAGOGIUM MERGE
         </h1>
